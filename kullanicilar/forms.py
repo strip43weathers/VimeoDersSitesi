@@ -28,8 +28,7 @@ class CustomAuthenticationForm(AuthenticationForm):
 
     error_messages = {
         'invalid_login': (
-            "Kullanıcı Adı veya Parolanız hatalı. Lütfen tekrar deneyiniz. "
-            "Not: Yönetici henüz hesabınızı onaylamamış olabilir."
+            "Kullanıcı Adı veya Parolanız hatalı. Lütfen tekrar deneyiniz. Not: Yönetici henüz hesabınızı onaylamamış olabilir. "
         ),
         'inactive': ("Bu hesap aktif değil."),
     }
