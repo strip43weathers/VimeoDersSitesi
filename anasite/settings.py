@@ -46,7 +46,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # Bu satır eksikti, şimdi doğru yere ekliyoruz:
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -121,9 +120,22 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
 
 # Default primary key field type
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.2/howto/static-files/
+
+STATIC_URL = 'static/'
+
+# Bu satır, collectstatic komutunun tüm statik dosyaları
+# projenin ana dizinindeki 'staticfiles' adlı bir klasörde toplamasını sağlar.
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Bu ayar, Render gibi platformlarda admin paneli dahil olmak üzere
+# tüm statik dosyaların doğru bir şekilde sunulmasını sağlar.
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -135,6 +147,3 @@ LOGIN_REDIRECT_URL = '/dersler/'       # Başarılı girişten sonra kullanıcı
 LOGOUT_REDIRECT_URL = '/hesaplar/login/' # Başarılı çıkıştan sonra kullanıcı nereye gitsin?
 
 AUTHENTICATION_BACKENDS = ['kullanicilar.backends.OnayliKullaniciBackend']
-
-STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
