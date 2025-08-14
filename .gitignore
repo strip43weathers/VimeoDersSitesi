@@ -1,0 +1,17 @@
+# Sanal ortam
+.venv/
+venv/
+
+# Veritabanı
+db.sqlite3
+*.sqlite3
+
+# Python cache dosyaları
+__pycache__/
+*.pyc
+
+# PyCharm proje dosyaları
+.idea/
+
+# Gizli anahtarları ve ortam değişkenlerini içeren dosya
+.env

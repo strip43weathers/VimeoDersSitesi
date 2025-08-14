@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Tüm Kurslar - {{ block.super }}{% endblock %}
+
+{% block content %}
+    <div class="hero-section text-center">
+        <h1 class="display-4">Romence Öğrenmeye Hoş Geldiniz!</h1>
+        <p class="lead text-muted">Aşağıdaki kurslardan birini seçerek hemen derslerinize başlayın.</p>
+    </div>
+
+    <h2 class="mb-4">Tüm Kurslar</h2>
+    <div class="row">
+        {% for kurs in kurslar %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm card-hover">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ kurs.baslik }}</h5>
+                        <p class="card-text flex-grow-1 text-muted">{{ kurs.aciklama|truncatewords:20 }}</p>
+                        <a href="{% url 'dersler:kurs_detay' kurs.id %}" class="btn btn-primary mt-auto">Dersleri Görüntüle</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col">
+                <div class="alert alert-info">Henüz gösterilecek bir kurs bulunmuyor.</div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
