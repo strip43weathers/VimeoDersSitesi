@@ -109,9 +109,14 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+# anasite/settings.py içinde
 
-TIME_ZONE = 'UTC'
+# Internationalization
+# https://docs.djangoproject.com/en/5.2/topics/i18n/
+
+LANGUAGE_CODE = 'tr-TR'  # İngilizce 'en-us' yerine Türkçe 'tr-TR' yapıyoruz
+
+TIME_ZONE = 'Europe/Istanbul' # Zaman dilimini Türkiye olarak ayarlıyoruz
 
 USE_I18N = True
 
