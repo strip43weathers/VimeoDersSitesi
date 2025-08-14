@@ -9,7 +9,6 @@ class KayitFormu(UserCreationForm):
         fields = UserCreationForm.Meta.fields + ('first_name', 'last_name', 'email')
 
 class CustomAuthenticationForm(AuthenticationForm):
-    # Bu __init__ metodu, formun alanlarını Türkçeleştirmek için eklendi.
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['username'].label = "Kullanıcı Adı"
