@@ -133,3 +133,5 @@ LOGIN_REDIRECT_URL = '/dersler/'       # Başarılı girişten sonra kullanıcı
 LOGOUT_REDIRECT_URL = '/hesaplar/login/' # Başarılı çıkıştan sonra kullanıcı nereye gitsin?
 
 AUTHENTICATION_BACKENDS = ['kullanicilar.backends.OnayliKullaniciBackend']
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
