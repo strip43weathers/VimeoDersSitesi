@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -128,13 +129,13 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# Bu satır, collectstatic komutunun tüm statik dosyaları
+# Bu satır, 'collectstatic' komutunun tüm statik dosyaları (admin dahil)
 # projenin ana dizinindeki 'staticfiles' adlı bir klasörde toplamasını sağlar.
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Bu ayar, Render gibi platformlarda admin paneli dahil olmak üzere
-# tüm statik dosyaların doğru bir şekilde sunulmasını sağlar.
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Bu ayar, Whitenoise'un statik dosyaları verimli bir şekilde
+# sunmasını ve önbelleğe almasını sağlar.
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
