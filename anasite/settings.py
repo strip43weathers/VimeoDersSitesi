@@ -135,3 +135,4 @@ LOGOUT_REDIRECT_URL = '/hesaplar/login/' # Başarılı çıkıştan sonra kullan
 AUTHENTICATION_BACKENDS = ['kullanicilar.backends.OnayliKullaniciBackend']
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
