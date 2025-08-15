@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}  {% block title %}Giriş Yap - {{ block.super }}{% endblock %}
+{% load crispy_forms_tags %}
+
+{% block title %}Giriş Yap - {{ block.super }}{% endblock %}
 
 {% block content %}
     <div class="row justify-content-center">
@@ -8,6 +10,7 @@
                 <div class="card-body p-5">
                     <h2 class="card-title text-center mb-4">Öğrenci Girişi</h2>
 
+                    {# Sadece formda bir hata varsa bu bloğu göster #}
                     {% if form.errors %}
                         <div class="alert alert-danger">
                             Kullanıcı adı veya parolanız hatalı. Lütfen tekrar deneyin. Not: Hesabınız henüz yönetici tarafından onaylanmamış olabilir.
@@ -16,7 +19,11 @@
 
                     <form method="post">
                         {% csrf_token %}
-                        {{ form|crispy }}  <button type="submit" class="btn btn-primary w-100 mt-4">Giriş Yap</button> </form>
+                        {# Hata mesajlarının çift görünmemesi için alanları tek tek ekliyoruz #}
+                        {{ form.username|as_crispy_field }}
+                        {{ form.password|as_crispy_field }}
+                        <button type="submit" class="btn btn-primary w-100 mt-4">Giriş Yap</button>
+                    </form>
 
                     <div class="text-center mt-3">
                         <small class="text-muted">Hesabın yok mu? <a href="{% url 'kullanicilar:kayit' %}">Hemen Kayıt Ol</a></small>

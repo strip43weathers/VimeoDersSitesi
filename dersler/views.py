@@ -2,6 +2,10 @@ from django.shortcuts import render, get_object_or_404
 from .models import Kurs, Ders
 from django.contrib.auth.decorators import login_required # Bu satırı ekledik
 
+
+def anasayfa_view(request):
+    return render(request, 'anasayfa.html')
+
 @login_required # Bu satırı ekledik
 def kurs_listesi(request):
     kurslar = Kurs.objects.all()

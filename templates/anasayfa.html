@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Ana Sayfa - {{ block.super }}{% endblock %}
+
+{% block content %}
+    <div class="hero-section text-center">
+        <h1 class="display-4">Romingo Academy'e Hoş Geldiniz!</h1>
+        <p class="lead text-muted">A'dan Z'ye Rumence öğrenmek için doğru yerdesiniz. Derslere başlamak için giriş yapın veya yeni bir hesap oluşturun.</p>
+        <hr class="my-4">
+
+        {% if user.is_authenticated %}
+            {# Kullanıcı zaten giriş yapmışsa, onu derslere yönlendir #}
+            <p>Derslere hemen başlamak için aşağıdaki butonu kullanabilirsiniz.</p>
+            <a class="btn btn-primary btn-lg" href="{% url 'dersler:kurs_listesi' %}" role="button">Kursları Görüntüle</a>
+        {% else %}
+            {# Kullanıcı giriş yapmamışsa, giriş veya kayıt seçeneklerini sun #}
+            <p>Başlamak için giriş yapın veya kaydolun.</p>
+            <a class="btn btn-primary btn-lg" href="{% url 'login' %}" role="button">Giriş Yap</a>
+            <a class="btn btn-success btn-lg" href="{% url 'kullanicilar:kayit' %}" role="button">Hemen Kayıt Ol</a>
+        {% endif %}
+    </div>
+
+    <div class="row text-center mt-5">
+        <div class="col-md-4">
+            <h4>Kapsamlı Dersler</h4>
+            <p>Başlangıçtan ileri seviyeye kadar tüm konuları içeren video dersler.</p>
+        </div>
+        <div class="col-md-4">
+            <h4>Kolay Erişim</h4>
+            <p>İstediğiniz zaman, istediğiniz yerden derslerinize ulaşın.</p>
+        </div>
+        <div class="col-md-4">
+            <h4>Öğretmen Onayı</h4>
+            <p>Sadece onaylı öğrencilerin erişebildiği güvenli bir öğrenme ortamı.</p>
+        </div>
+    </div>
+{% endblock %}
