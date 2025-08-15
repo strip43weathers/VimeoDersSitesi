@@ -9,7 +9,7 @@ class KayitFormu(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['username'].label = "Kullanıcı Adı"
-        self.fields['username'].help_text = "En fazla 150 karakter. Sadece harf, rakam ve @/./+/-/_ karakterleri."
+        self.fields['username'].help_text = "Herkesten farklı olmak zorunda. En fazla 150 karakter. Sadece harf, rakam ve @ / . / + / - / _ karakterleri."
         self.fields['first_name'].label = "Adınız"
         self.fields['last_name'].label = "Soyadınız"
         self.fields['password1'].label = "Parola"

@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
-
-{% block title %}Kayıt Ol - {{ block.super }}{% endblock %}
+{% load crispy_forms_tags %}  {% block title %}Kayıt Ol - {{ block.super }}{% endblock %}
 
 {% block content %}
     <div class="row justify-content-center">
@@ -9,11 +8,11 @@
                 <div class="card-body p-5">
                     <h2 class="card-title text-center mb-4">Yeni Öğrenci Kaydı</h2>
                     <p class="text-center text-muted small">Hesabınız öğretmen tarafından onaylandıktan sonra giriş yapabileceksiniz.</p>
+
                     <form method="post">
                         {% csrf_token %}
-                        {{ form.as_p }}
-                        <button type="submit" class="btn btn-success btn-block mt-4">Kayıt Ol</button>
-                    </form>
+                        {{ form|crispy }}  <button type="submit" class="btn btn-success w-100 mt-4">Kayıt Ol</button> </form>
+
                      <div class="text-center mt-3">
                         <small class="text-muted">Zaten bir hesabın var mı? <a href="{% url 'login' %}">Giriş Yap</a></small>
                     </div>

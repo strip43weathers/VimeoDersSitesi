@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'dersler',
     'kullanicilar',
+    'crispy_bootstrap5',
+    'crispy_forms',
 ]
 
 MIDDLEWARE = [
@@ -92,16 +94,7 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
 
@@ -153,3 +146,6 @@ LOGIN_REDIRECT_URL = '/dersler/'       # Başarılı girişten sonra kullanıcı
 LOGOUT_REDIRECT_URL = '/hesaplar/login/' # Başarılı çıkıştan sonra kullanıcı nereye gitsin?
 
 AUTHENTICATION_BACKENDS = ['kullanicilar.backends.OnayliKullaniciBackend']
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
