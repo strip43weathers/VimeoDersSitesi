@@ -128,6 +128,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATICFILES_DIRS = [BASE_DIR / "static"]
+
 # Bu satır, 'collectstatic' komutunun tüm statik dosyaları (admin dahil)
 # projenin ana dizinindeki 'staticfiles' adlı bir klasörde toplamasını sağlar.
 STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -135,6 +137,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # Bu ayar, Whitenoise'un statik dosyaları verimli bir şekilde
 # sunmasını ve önbelleğe almasını sağlar.
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
