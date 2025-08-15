@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'dersler',
     'kullanicilar',
-    'hesaplar',
 ]
 
 MIDDLEWARE = [
