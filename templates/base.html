@@ -11,38 +11,60 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
+        /* Romanya Bayrağı Renkleri */
+        :root {
+            --romania-blue: #002B7F;
+            --romania-yellow: #FCD116;
+            --romania-red: #CE1126;
+            --light-yellow: #FFFBEA; /* Ana içerik için açık sarı tonu */
+        }
+
         body {
             font-family: 'Nunito Sans', sans-serif;
-            background-color: #f8f9fa; /* Açık gri tonu */
+            background-color: #f8f9fa;
         }
         .navbar-brand strong {
-            color: #0d6efd; /* Bootstrap'in ana mavi rengi */
+            color: var(--romania-blue); /* Navbar başlığı mavi */
         }
+
+        /* Ana Buton (Giriş Yap, Dersleri Görüntüle vb.) */
         .btn-primary {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
+            background-color: var(--romania-blue);
+            border-color: var(--romania-blue);
         }
         .btn-primary:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
+            background-color: #001f5c; /* Mavinin koyu tonu */
+            border-color: #001f5c;
         }
+
+        /* Kayıt Ol Butonu */
+        .btn-success {
+            background-color: var(--romania-red); /* Kayıt butonu kırmızı */
+            border-color: var(--romania-red);
+        }
+        .btn-success:hover {
+            background-color: #a40e1f; /* Kırmızının koyu tonu */
+            border-color: #a40e1f;
+        }
+
         .card-hover:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 15px rgba(0,0,0,0.1) !important;
             transition: all 0.2s ease-in-out;
         }
         .hero-section {
-            background: #e9ecef;
+            background: var(--light-yellow); /* Ana karşılama alanı açık sarı */
             padding: 4rem 2rem;
             margin-bottom: 2.5rem;
             border-radius: 0.5rem;
+            border: 1px solid #e9deab;
         }
         .main-container {
             min-height: 75vh;
         }
         .footer {
             padding: 2rem 0;
-            background-color: #343a40;
+            background-color: var(--romania-blue); /* Footer alanı mavi */
             color: white;
         }
     </style>
@@ -51,7 +73,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
     <div class="container">
-        <a class="navbar-brand" href="{% url 'dersler:kurs_listesi' %}">
+        <a class="navbar-brand" href="{% url 'anasayfa' %}">
             <strong>Romingo Academy</strong>
         </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -74,7 +96,7 @@
                         <a class="nav-link" href="{% url 'login' %}">Giriş Yap</a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-primary ml-2" href="{% url 'kullanicilar:kayit' %}" role="button">Kayıt Ol</a>
+                        <a class="btn btn-success ml-2" href="{% url 'kullanicilar:kayit' %}" role="button">Kayıt Ol</a>
                     </li>
                 {% endif %}
             </ul>
