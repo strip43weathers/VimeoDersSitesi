@@ -1,10 +1,16 @@
 from django.db import models
+from django.contrib.auth.models import User # Bu satırı ekleyin
 
 class Kurs(models.Model):
     baslik = models.CharField(max_length=200, verbose_name="Kurs Başlığı")
     aciklama = models.TextField(verbose_name="Kurs Açıklaması", blank=True, null=True)
     gorsel = models.ImageField(upload_to='kurs_gorselleri/', blank=True, null=True, verbose_name="Kurs Görseli")
     olusturulma_tarihi = models.DateTimeField(auto_now_add=True)
+
+    # --- YENİ EKLENEN ALANLAR ---
+    herkese_acik = models.BooleanField(default=True, verbose_name="Herkese Açık")
+    izinli_kullanicilar = models.ManyToManyField(User, blank=True, related_name='erisilebilen_kurslar', verbose_name="İzinli Kullanıcılar")
+    # -----------------------------
 
     def __str__(self):
         return self.baslik
@@ -15,6 +21,7 @@ class Kurs(models.Model):
 
 
 class Ders(models.Model):
+    # Bu modelde bir değişiklik yok
     kurs = models.ForeignKey(Kurs, on_delete=models.CASCADE, related_name='dersler', verbose_name="Ait Olduğu Kurs")
     baslik = models.CharField(max_length=200, verbose_name="Ders Başlığı")
     aciklama = models.TextField(verbose_name="Ders Açıklaması", blank=True, null=True)
