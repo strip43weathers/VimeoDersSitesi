@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 import dj_database_url
 from decouple import config
 from pathlib import Path
@@ -84,8 +85,9 @@ WSGI_APPLICATION = 'anasite.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600,
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+        ssl_require=True
     )
 }
 

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from .forms import KayitFormu
 from .models import Profil
+from django.contrib import messages
 
 def kayit_view(request):
     if request.method == 'POST':
@@ -10,6 +11,7 @@ def kayit_view(request):
             # Yeni bir kullanıcı oluştuğunda, ona otomatik olarak
             # onaylanmamış bir profil de oluşturuyoruz.
             Profil.objects.create(user=user, onaylandi=False)
+            messages.success(request,'Tebrikler başarıyla kaydoldunuz. Yönetici hesabınızı onayladıktan sonra giriş yapabileceksiniz.')
             # Başarılı kayıttan sonra öğrenciyi bilgilendirme amaçlı
             # giriş sayfasına yönlendiriyoruz.
             return redirect('login')

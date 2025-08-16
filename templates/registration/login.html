@@ -10,6 +10,18 @@
                 <div class="card-body p-5">
                     <h2 class="card-title text-center mb-4">Öğrenci Girişi</h2>
 
+                    {# --- YENİ EKLENEN BÖLÜM --- #}
+                    {# Django'nun messages framework'ünden gelen mesajları göster #}
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-success">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    {# --- BİTİŞ --- #}
+
+
                     {# Sadece formda bir hata varsa bu bloğu göster #}
                     {% if form.errors %}
                         <div class="alert alert-danger">
