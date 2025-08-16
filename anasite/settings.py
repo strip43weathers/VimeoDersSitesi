@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+from decouple import config
 import os
 import dj_database_url
 from decouple import config
@@ -87,7 +88,8 @@ DATABASES = {
     'default': dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600,
-        ssl_require=True
+
+
     )
 }
 
@@ -148,10 +150,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # anasite/settings.py dosyasının en altı
 
 LOGIN_URL = '/hesaplar/login/'         # Giriş yapmamış bir kullanıcı nereye yönlendirilsin?
-LOGIN_REDIRECT_URL = '/dersler/'       # Başarılı girişten sonra kullanıcı nereye gitsin?
+LOGIN_REDIRECT_URL = '/kurslar/'       # Başarılı girişten sonra kullanıcı nereye gitsin?
 LOGOUT_REDIRECT_URL = '/hesaplar/login/' # Başarılı çıkıştan sonra kullanıcı nereye gitsin?
 
 AUTHENTICATION_BACKENDS = ['kullanicilar.backends.OnayliKullaniciBackend']
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Gmail için
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True  # Güvenli bağlantı için
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')

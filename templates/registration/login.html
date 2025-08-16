@@ -36,8 +36,8 @@
                         {{ form.password|as_crispy_field }}
                         <button type="submit" class="btn btn-primary w-100 mt-4">Giriş Yap</button>
                     </form>
-
                     <div class="text-center mt-3">
+                        <small class="text-muted d-block mb-2"><a href="{% url 'password_reset' %}">Şifreni mi unuttun?</a></small>
                         <small class="text-muted">Hesabın yok mu? <a href="{% url 'kullanicilar:kayit' %}">Hemen Kayıt Ol</a></small>
                     </div>
                 </div>
