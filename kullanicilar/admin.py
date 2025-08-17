@@ -10,12 +10,10 @@ class ProfilInline(admin.StackedInline):
     verbose_name_plural = 'Profiller'
 
 
-# Django'nun temel User adminini kendi ihtiyaçlarımıza göre genişletiyoruz
 class UserAdmin(BaseUserAdmin):
     inlines = (ProfilInline,)
     list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'get_onay_durumu')
 
-    # --- YENİ EKLENEN BÖLÜM (Admin Actions) ---
     actions = ['approve_users', 'disapprove_users']
 
     @admin.action(description='Seçili kullanıcıları onayla')
@@ -32,9 +30,6 @@ class UserAdmin(BaseUserAdmin):
             user.profil.save()
         self.message_user(request, f"{queryset.count()} kullanıcının onayı kaldırıldı.")
 
-    # --- BİTİŞ ---
-
-    # Kullanıcı listesinde "Onay Durumu" sütununu göstermek için fonksiyon
     @admin.display(description='Onay Durumu', boolean=True)
     def get_onay_durumu(self, obj):
         try:
@@ -43,6 +38,5 @@ class UserAdmin(BaseUserAdmin):
             return False
 
 
-# Standart User adminini iptal edip, yerine bizim yazdığımızı kaydediyoruz.
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)

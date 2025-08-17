@@ -10,7 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from decouple import config
+
 import os
 import dj_database_url
 from decouple import config
@@ -29,12 +29,9 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# anasite/settings.py
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
 
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -111,9 +108,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'tr-TR'  # İngilizce 'en-us' yerine Türkçe 'tr-TR' yapıyoruz
+LANGUAGE_CODE = 'tr-TR'
 
-TIME_ZONE = 'Europe/Istanbul' # Zaman dilimini Türkiye olarak ayarlıyoruz
+TIME_ZONE = 'Europe/Istanbul'
 
 USE_I18N = True
 
@@ -133,12 +130,10 @@ STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-# Bu satır, 'collectstatic' komutunun tüm statik dosyaları (admin dahil)
-# projenin ana dizinindeki 'staticfiles' adlı bir klasörde toplamasını sağlar.
+
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Bu ayar, Whitenoise'un statik dosyaları verimli bir şekilde
-# sunmasını ve önbelleğe almasını sağlar.
+
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
@@ -146,11 +141,10 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# anasite/settings.py dosyasının en altı
 
-LOGIN_URL = '/hesaplar/login/'         # Giriş yapmamış bir kullanıcı nereye yönlendirilsin?
-LOGIN_REDIRECT_URL = '/kurslar/'       # Başarılı girişten sonra kullanıcı nereye gitsin?
-LOGOUT_REDIRECT_URL = '/hesaplar/login/' # Başarılı çıkıştan sonra kullanıcı nereye gitsin?
+LOGIN_URL = '/hesaplar/login/'
+LOGIN_REDIRECT_URL = '/kurslar/'
+LOGOUT_REDIRECT_URL = '/hesaplar/login/'
 
 AUTHENTICATION_BACKENDS = ['kullanicilar.backends.OnayliKullaniciBackend']
 
@@ -161,8 +155,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # Gmail için
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_USE_TLS = True  # Güvenli bağlantı için
+EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')

@@ -3,10 +3,10 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, Pass
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 
+
 class KayitFormu(UserCreationForm):
     email = forms.EmailField(required=True, help_text="Lütfen geçerli bir e-posta adresi girin.")
 
-    # Bu __init__ metodu, formun alanlarını Türkçeleştirmek için eklendi.
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['username'].label = "Kullanıcı Adı"
@@ -34,22 +34,22 @@ class CustomAuthenticationForm(AuthenticationForm):
         'inactive': ("Bu hesap aktif değil."),
     }
 
+
 class CustomPasswordResetForm(PasswordResetForm):
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if email:
             try:
-                # E-posta adresine sahip bir kullanıcı var mı diye kontrol et
+
                 user = User.objects.get(email__iexact=email)
-                # Kullanıcının profili var mı ve onaylanmış mı diye kontrol et
+
                 if not hasattr(user, 'profil') or not user.profil.onaylandi:
-                    # Onaylanmamışsa, özel hata mesajımızı göster
+
                     raise ValidationError(
                         "Şifremi unuttum seçeneğini kullanabilmeniz için hesabınızın yönetici tarafından onaylanmış olması gerekir.",
                         code='unapproved_account'
                     )
             except User.DoesNotExist:
-                # E-posta adresi sistemde yoksa, Django'nun varsayılan davranışını sürdür
-                # (güvenlik nedeniyle kullanıcıya bilgi verilmez).
+
                 pass
         return email
