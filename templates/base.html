@@ -56,19 +56,18 @@
             background-size: cover;
             background-position: center;
             color: white;
-            padding: 6rem 2rem;
+            padding: 3rem 2rem; /* Üst ve alt boşluk azaltıldı */
             border-radius: 1rem;
         }
         .hero-image-bg .display-4 { color: white; font-weight: 700; }
         .hero-image-bg .lead { color: rgba(255, 255, 255, 0.9); font-size: 1.25rem; }
 
-        /* --- YENİ EKLENEN STİLLER --- */
         .page-header {
             background: linear-gradient(135deg, var(--romania-blue) 0%, #001f5c 100%);
             color: white;
             padding: 3rem 2rem;
             border-radius: 1rem;
-            margin-bottom: -2rem; /* Kartın başlık alanına girmesini sağlar */
+            margin-bottom: -2rem;
             position: relative;
             z-index: 2;
         }
@@ -77,6 +76,24 @@
             box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
             position: relative;
             z-index: 1;
+        }
+
+        /* ANA SAYFA KARŞILAMA ALANI İÇİN YENİ STİLLER */
+        .hero-features {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 2.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+        .hero-features span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
     </style>
 </head>
@@ -92,9 +109,17 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
+            <ul class="navbar-nav ms-auto align-items-center">
                 {% if user.is_authenticated %}
-                    <li class="nav-item"><span class="navbar-text me-3">Merhaba, {{ user.first_name|default:user.username }}!</span></li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold" href="{% url 'oyunlar:ozel_oyun_listesi' %}">
+                            <i class="bi bi-star-fill text-warning me-1"></i>Özel Oyunlar
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dersler:kurs_listesi' %}">Kurslar</a>
+                    </li>
+                    <li class="nav-item"><span class="navbar-text mx-2">Merhaba, {{ user.first_name|default:user.username }}!</span></li>
                     <li class="nav-item">
                         <form action="{% url 'logout' %}" method="post">{% csrf_token %}<button type="submit" class="btn btn-outline-secondary btn-sm">Çıkış Yap</button></form>
                     </li>
@@ -123,10 +148,10 @@
 
             <div class="col-md-4 col-lg-2 col-xl-2 mx-auto mt-3">
                 <h5 class="text-uppercase mb-4 fw-bold">Faydalı Linkler</h5>
-                <p><a href="{% url 'hakkimizda' %}" class="text-white" style="text-decoration: none;">Hakkımızda</a></p>
-                <p><a href="{% url 'sss' %}" class="text-white" style="text-decoration: none;">Sıkça Sorulan Sorular</a></p>
-                <p><a href="{% url 'gizlilik' %}" class="text-white" style="text-decoration: none;">Gizlilik Politikası</a></p>
-                <p><a href="{% url 'kullanim' %}" class="text-white" style="text-decoration: none;">Kullanım Şartları</a></p>
+                <p><a href="{% url 'sayfalar:sayfa_detay' slug='hakkimizda' %}" class="text-white" style="text-decoration: none;">Hakkımızda</a></p>
+                <p><a href="{% url 'sayfalar:sayfa_detay' slug='sss' %}" class="text-white" style="text-decoration: none;">Sıkça Sorulan Sorular</a></p>
+                <p><a href="{% url 'sayfalar:sayfa_detay' slug='gizlilik-politikasi' %}" class="text-white" style="text-decoration: none;">Gizlilik Politikası</a></p>
+                <p><a href="{% url 'sayfalar:sayfa_detay' slug='kullanim-sartlari' %}" class="text-white" style="text-decoration: none;">Kullanım Şartları</a></p>
             </div>
 
             <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mt-3">

@@ -44,6 +44,9 @@ INSTALLED_APPS = [
     'kullanicilar',
     'crispy_bootstrap5',
     'crispy_forms',
+    'oyunlar',
+    'sayfalar',
+    'ckeditor',
 ]
 
 MIDDLEWARE = [

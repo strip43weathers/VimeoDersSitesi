@@ -32,6 +32,7 @@ class Ders(models.Model):
     sira_numarasi = models.PositiveIntegerField(verbose_name="Sıra Numarası", default=0, help_text="Derslerin hangi sırada gösterileceğini belirler.")
     olusturulma_tarihi = models.DateTimeField(auto_now_add=True)
 
+
     def __str__(self):
         return f"{self.kurs.baslik} - {self.baslik}"
 

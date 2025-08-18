@@ -1,7 +1,15 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}  {% block title %}Kayıt OL - {{ block.super }}{% endblock %}
+{% load crispy_forms_tags %}
+
+{% block title %}Kayıt OL - {{ block.super }}{% endblock %}
 
 {% block content %}
+    <div class="mb-4">
+        <a href="{% url 'anasayfa' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i> Ana Sayfaya Dön
+        </a>
+    </div>
+
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card shadow-sm">
@@ -11,7 +19,9 @@
 
                     <form method="post">
                         {% csrf_token %}
-                        {{ form|crispy }}  <button type="submit" class="btn btn-success w-100 mt-4">Kayıt Ol</button> </form>
+                        {{ form|crispy }}
+                        <button type="submit" class="btn btn-success w-100 mt-4">Kayıt Ol</button>
+                    </form>
 
                      <div class="text-center mt-3">
                         <small class="text-muted">Zaten bir hesabın var mı? <a href="{% url 'login' %}">Giriş Yap</a></small>

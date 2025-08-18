@@ -38,19 +38,3 @@ def ders_detay(request, kurs_id, ders_id):
 
     ders = get_object_or_404(Ders, kurs_id=kurs_id, pk=ders_id)
     return render(request, 'dersler/ders_detay.html', {'ders': ders})
-
-
-def hakkimizda_view(request):
-    return render(request, 'hakkimizda.html')
-
-
-def sss_view(request):
-    return render(request, 'sss.html')
-
-
-def gizlilik_view(request):
-    return render(request, 'gizlilik.html')
-
-
-def kullanim_view(request):
-    return render(request, 'kullanim.html')

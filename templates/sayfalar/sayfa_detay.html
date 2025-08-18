@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ sayfa.baslik }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="page-header text-center">
+                <h1 class="display-5">{{ sayfa.baslik }}</h1>
+            </div>
+            <div class="card content-card">
+                {{ sayfa.icerik|safe }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

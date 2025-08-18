@@ -4,18 +4,66 @@
 
 {% block content %}
     <div class="hero-image-bg text-center mb-5">
-        <h1 class="display-4">Romingo Academy'e Hoş Geldiniz!</h1>
-        <p class="lead">A'dan Z'ye Romence öğrenmek için doğru yerdesiniz. Derslere başlamak için giriş yapın veya yeni bir hesap oluşturun.</p>
-        <hr class="my-4" style="border-color: rgba(255,255,255,0.3);">
+        <div class="container py-5">
+            <h1 class="display-4 fw-bold">Romingo Academy ile Romence'yi Keşfedin</h1>
+            <p class="lead my-4 col-md-10 mx-auto">
+                Profesyonel ekibimiz ve uzman öğretmenlerimiz eşliğinde, interaktif ve keyifli bir ders ortamında Romence öğrenin. Başlangıç seviyesinden ileri seviyeye, size özel bir öğrenme deneyimi için gereken tüm rehberliği sunuyoruz.
+            </p>
 
-        {% if user.is_authenticated %}
-            <p>Derslere hemen başlamak için aşağıdaki butonu kullanabilirsiniz.</p>
-            <a class="btn btn-primary btn-lg" href="{% url 'dersler:kurs_listesi' %}" role="button">Kursları Görüntüle</a>
-        {% else %}
-            <p>Başlamak için giriş yapın veya kaydolun.</p>
-            <a class="btn btn-primary btn-lg" href="{% url 'login' %}" role="button">Giriş Yap</a>
-            <a class="btn btn-success btn-lg" href="{% url 'kullanicilar:kayit' %}" role="button">Hemen Kayıt Ol</a>
-        {% endif %}
+            <div class="hero-features">
+                <span><i class="bi bi-person-video3"></i> Uzman Eğitmenler</span>
+                <span><i class="bi bi-lightbulb-fill"></i> Etkili Öğrenme Metotları</span>
+                <span><i class="bi bi-headset"></i> Birebir Rehberlik</span>
+                <span><i class="bi bi-award-fill"></i> Kurs Sonu Sertifika</span>
+            </div>
+
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                {% if user.is_authenticated %}
+                    <a class="btn btn-primary btn-lg px-4 gap-3" href="{% url 'dersler:kurs_listesi' %}" role="button">Kursları Görüntüle</a>
+                {% else %}
+                    <a class="btn btn-primary btn-lg px-4 gap-3" href="{% url 'login' %}" role="button">Giriş Yap</a>
+                    <a class="btn btn-success btn-lg px-4" href="{% url 'kullanicilar:kayit' %}" role="button">Hemen Kayıt Ol</a>
+                {% endif %}
+
+                <a id="oyunlar-butonu" class="btn btn-warning btn-lg px-4" href="{% url 'oyunlar:oyun_listesi' %}" role="button">
+                    <i class="bi bi-joystick me-2"></i> Eğlenerek Öğren!
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container my-5 py-5 text-center bg-light rounded-3 shadow-sm">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <i class="bi bi-joystick h1 text-warning mb-3"></i>
+                <h2 class="display-6 fw-bold">İnteraktif oyunlarla daha iyi bir deneyim kazanmak ister misin?</h2>
+                <p class="lead text-muted my-4">
+                    Hemen tıkla ve kelime bilginizi test edecek eğlenceli alıştırmalarla ücretsiz bir şekilde oyna!
+                </p>
+                <a href="{% url 'oyunlar:oyun_listesi' %}" class="btn btn-warning btn-lg fw-bold" style="color: #212529; transform: scale(1.1);">
+                    Ücretsiz Oyunları Keşfet!
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container my-5">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <h2 class="display-6 fw-bold">Eğitiminizi Sertifika ile Taçlandırın</h2>
+                <p class="lead text-muted mt-3">
+                    Romingo Academy'de tamamladığınız her seviye için, başarınızı belgeleyen bir kurs bitirme sertifikası alırsınız. Bu sertifika, Romence dilindeki yetkinliğinizi göstermenin harika bir yoludur.
+                </p>
+                <ul class="list-unstyled mt-4 fs-5">
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Tüm dersleri tamamlayın.</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Başarı testlerini geçin.</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Sertifikanızı alın!</li>
+                </ul>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="bi bi-patch-check-fill text-primary" style="font-size: 12rem; text-shadow: 0 4px 15px rgba(0,0,0,0.1);"></i>
+            </div>
+        </div>
     </div>
 
     <div class="row text-center mt-5 pt-4">
@@ -35,9 +83,9 @@
         </div>
         <div class="col-md-4">
             <div class="p-3">
-                <i class="bi bi-patch-check-fill h1 text-primary mb-3"></i>
-                <h4>Öğretmen Onayı</h4>
-                <p class="text-muted">Sadece onaylı öğrencilerin erişebildiği güvenli bir öğrenme ortamı.</p>
+                <i class="bi bi-award-fill h1 text-primary mb-3"></i>
+                <h4>Başarı Sertifikası</h4>
+                <p class="text-muted">Kursları tamamlayarak yetkinliğinizi kanıtlayan sertifikanızı alın.</p>
             </div>
         </div>
     </div>

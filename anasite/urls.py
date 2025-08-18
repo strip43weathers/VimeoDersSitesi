@@ -9,12 +9,13 @@ from django.contrib.auth import views as auth_views
 from kullanicilar.forms import CustomPasswordResetForm
 
 urlpatterns = [
+    path('admin/', admin.site.urls),
     path('', dersler_views.anasayfa_view, name='anasayfa'),
-    path('hakkimizda/', dersler_views.hakkimizda_view, name='hakkimizda'),
-    path('sss/', dersler_views.sss_view, name='sss'),
-    path('gizlilik-politikasi/', dersler_views.gizlilik_view, name='gizlilik'),
-    path('kullanim-sartlari/', dersler_views.kullanim_view, name='kullanim'),
 
+    # ÖZEL URL'LERİ GENEL OLANLARDAN ÖNCEYE ALIYORUZ
+    path('kurslar/', include('dersler.urls')),
+    path('oyunlar/', include('oyunlar.urls')),
+    path('kullanicilar/', include('kullanicilar.urls')),
 
     path(
         'hesaplar/password_reset/',
@@ -24,14 +25,10 @@ urlpatterns = [
         ),
         name='password_reset'
     ),
-
-    path('admin/', admin.site.urls),
-    path('kurslar/', include('dersler.urls')),
-
-
     path('hesaplar/', include('django.contrib.auth.urls')),
 
-    path('kullanicilar/', include('kullanicilar.urls')),
+    # EN GENEL URL'İ (TÜM STATİK SAYFALARI KAPSAYAN) EN SONA KOYUYORUZ
+    path('', include('sayfalar.urls')),
 ]
 
 if settings.DEBUG:
