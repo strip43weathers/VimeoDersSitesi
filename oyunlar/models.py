@@ -1,4 +1,3 @@
-# dosya: oyunlar/models.py
 from django.db import models
 
 
@@ -8,7 +7,6 @@ class Oyun(models.Model):
     embed_kodu = models.TextField(verbose_name="Oyun Gömme Kodu (iframe)")
     sira_numarasi = models.PositiveIntegerField(default=0, verbose_name="Sıra Numarası")
 
-    # YENİ EKLENEN ALAN
     sadece_uyelere_ozel = models.BooleanField(
         default=False,
         verbose_name="Sadece Üyelere Özel mi?"

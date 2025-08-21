@@ -2,17 +2,22 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic.base import TemplateView  # Bu satır
 from dersler import views as dersler_views
-
-
 from django.contrib.auth import views as auth_views
 from kullanicilar.forms import CustomPasswordResetForm
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # robots.txt için URL kuralı
+    path(
+        "robots.txt",
+        TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
+    ),
+
     path('', dersler_views.anasayfa_view, name='anasayfa'),
 
-    # ÖZEL URL'LERİ GENEL OLANLARDAN ÖNCEYE ALIYORUZ
     path('kurslar/', include('dersler.urls')),
     path('oyunlar/', include('oyunlar.urls')),
     path('kullanicilar/', include('kullanicilar.urls')),
@@ -27,7 +32,6 @@ urlpatterns = [
     ),
     path('hesaplar/', include('django.contrib.auth.urls')),
 
-    # EN GENEL URL'İ (TÜM STATİK SAYFALARI KAPSAYAN) EN SONA KOYUYORUZ
     path('', include('sayfalar.urls')),
 ]
 
