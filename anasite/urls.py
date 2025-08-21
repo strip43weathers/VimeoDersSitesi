@@ -1,3 +1,5 @@
+# anasite/urls.py
+
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -7,7 +9,7 @@ from dersler import views as dersler_views
 
 # Sitemap için gerekli import'lar
 from django.contrib.sitemaps.views import sitemap
-from .sitemaps import KursSitemap, OyunSitemap, SayfaSitemap, StaticViewSitemap
+from .sitemaps import KursSitemap, SayfaSitemap, StaticViewSitemap # OyunSitemap'i sildik
 
 from django.contrib.auth import views as auth_views
 from kullanicilar.forms import CustomPasswordResetForm
@@ -15,7 +17,6 @@ from kullanicilar.forms import CustomPasswordResetForm
 # sitemaps sözlüğünü oluşturun
 sitemaps = {
     'kurslar': KursSitemap,
-    'oyunlar': OyunSitemap,
     'sayfalar': SayfaSitemap,
     'static': StaticViewSitemap,
 }

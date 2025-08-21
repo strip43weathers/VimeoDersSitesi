@@ -2,6 +2,6 @@ User-agent: *
 Disallow: /admin/
 Disallow: /hesaplar/
 Disallow: /kullanicilar/
-
+Disallow: /oyunlar/uyelere-ozel/
 
 Sitemap: https://www.romingoakademi.com/sitemap.xml
