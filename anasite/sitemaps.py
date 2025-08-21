@@ -7,7 +7,7 @@ from oyunlar.models import Oyun
 from sayfalar.models import Sayfa
 
 class KursSitemap(Sitemap):
-    changefreq = "weekly"
+    changefreq = "daily"
     priority = 0.9
 
     def items(self):
@@ -20,7 +20,7 @@ class KursSitemap(Sitemap):
     #     return obj.guncelleme_tarihi
 
 class OyunSitemap(Sitemap):
-    changefreq = "monthly"
+    changefreq = "daily"
     priority = 0.8
 
     def items(self):
@@ -28,7 +28,7 @@ class OyunSitemap(Sitemap):
         return Oyun.objects.filter(sadece_uyelere_ozel=False)
 
 class SayfaSitemap(Sitemap):
-    changefreq = "yearly"
+    changefreq = "daily"
     priority = 0.5
 
     def items(self):
