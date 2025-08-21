@@ -6,22 +6,23 @@ from dersler.models import Kurs
 from sayfalar.models import Sayfa
 
 class KursSitemap(Sitemap):
-    changefreq = "weekly"
+    changefreq = "daily"
     priority = 0.9
 
     def items(self):
-        # SADECE HERKESE AÇIK OLAN VİDEOLARI/KURSLARI LİSTELER
-        return Kurs.objects.filter(herkese_acik=True)
+        # Sadece 'herkese açık' olan ve slug'ı boş olmayan kursları al
+        return Kurs.objects.filter(herkese_acik=True).exclude(slug__exact='')
 
     def location(self, obj):
         return reverse('kurs_detay', args=[obj.slug])
 
 class SayfaSitemap(Sitemap):
-    changefreq = "yearly"
+    changefreq = "daily"
     priority = 0.5
 
     def items(self):
-        return Sayfa.objects.all()
+        # Sadece slug'ı boş olmayan sayfaları al
+        return Sayfa.objects.exclude(slug__exact='')
 
     def location(self, obj):
         return reverse('sayfa_detay', args=[obj.slug])
