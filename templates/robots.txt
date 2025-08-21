@@ -4,4 +4,4 @@ Disallow: /hesaplar/
 Disallow: /kullanicilar/
 
 
-# Sitemap: https://www.romingoakademi.com/sitemap.xml
+Sitemap: https://www.romingoakademi.com/sitemap.xml

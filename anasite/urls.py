@@ -2,15 +2,34 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.generic.base import TemplateView  # Bu satır
+from django.views.generic.base import TemplateView
 from dersler import views as dersler_views
+
+# Sitemap için gerekli import'lar
+from django.contrib.sitemaps.views import sitemap
+from .sitemaps import KursSitemap, OyunSitemap, SayfaSitemap, StaticViewSitemap
+
 from django.contrib.auth import views as auth_views
 from kullanicilar.forms import CustomPasswordResetForm
+
+# sitemaps sözlüğünü oluşturun
+sitemaps = {
+    'kurslar': KursSitemap,
+    'oyunlar': OyunSitemap,
+    'sayfalar': SayfaSitemap,
+    'static': StaticViewSitemap,
+}
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # robots.txt için URL kuralı
+    # Sitemap ve robots.txt URL'leri
+    path(
+        "sitemap.xml",
+        sitemap,
+        {"sitemaps": sitemaps},
+        name="django.contrib.sitemaps.views.sitemap",
+    ),
     path(
         "robots.txt",
         TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
