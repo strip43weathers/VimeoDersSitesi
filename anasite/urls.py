@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic.base import TemplateView  # Bu satırı ekleyin
 from dersler import views as dersler_views
 
 from django.contrib.auth import views as auth_views
@@ -9,6 +10,12 @@ from kullanicilar.forms import CustomPasswordResetForm
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # robots.txt için URL kuralı
+    path(
+        "robots.txt",
+        TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
+    ),
 
     path('', dersler_views.anasayfa_view, name='anasayfa'),
 
@@ -18,11 +25,11 @@ urlpatterns = [
     path('kullanicilar/', include('kullanicilar.urls')),
 
     path(
-        'hesaplar/password_reset/', 
+        'hesaplar/password_reset/',
         auth_views.PasswordResetView.as_view(
             form_class=CustomPasswordResetForm,
             template_name='registration/password_reset_form.html'
-            ), 
+        ),
         name='password_reset'
     ),
     path('hesaplar/', include('django.contrib.auth.urls')),
