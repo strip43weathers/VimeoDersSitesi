@@ -22,7 +22,6 @@
                     <a class="btn btn-primary btn-lg px-4 gap-3" href="{% url 'dersler:kurs_listesi' %}" role="button">Kursları Görüntüle</a>
                 {% else %}
                     <a class="btn btn-primary btn-lg px-4 gap-3" href="{% url 'login' %}" role="button">Giriş Yap</a>
-                    <a class="btn btn-success btn-lg px-4" href="{% url 'kullanicilar:kayit' %}" role="button">Hemen Kayıt Ol</a>
                 {% endif %}
 
                 <a id="oyunlar-butonu" class="btn btn-warning btn-lg px-4" href="{% url 'oyunlar:oyun_listesi' %}" role="button">

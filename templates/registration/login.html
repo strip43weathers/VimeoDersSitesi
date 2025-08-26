@@ -4,12 +4,6 @@
 {% block title %}Giriş Yap - {{ block.super }}{% endblock %}
 
 {% block content %}
-    <div class="mb-4">
-        <a href="{% url 'anasayfa' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-2"></i> Ana Sayfaya Dön
-        </a>
-    </div>
-
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card shadow-sm">
@@ -18,29 +12,21 @@
 
                     {% if messages %}
                         {% for message in messages %}
-                            <div class="alert alert-success">
-                                {{ message }}
-                            </div>
+                            <div class="alert alert-info small text-center">{{ message }}</div>
                         {% endfor %}
-                    {% endif %}
-
-                    {% if form.errors %}
-                        <div class="alert alert-danger">
-                            Kullanıcı adı veya parolanız hatalı. Lütfen tekrar deneyin. Not: Hesabınız henüz yönetici tarafından onaylanmamış olabilir.
-                        </div>
                     {% endif %}
 
                     <form method="post">
                         {% csrf_token %}
-                        {{ form.username|as_crispy_field }}
-                        {{ form.password|as_crispy_field }}
+                        {{ form|crispy }}
                         <button type="submit" class="btn btn-primary w-100 mt-4">Giriş Yap</button>
                     </form>
+
                     <div class="text-center mt-3">
-                        <small class="text-muted d-block mb-2"><a href="{% url 'password_reset' %}">Şifreni mi unuttun?</a></small>
-                        <small class="text-muted">Hesabın yok mu? <a href="{% url 'kullanicilar:kayit' %}">Hemen Kayıt Ol</a></small>
+                        <small class="text-muted"><a href="{% url 'password_reset' %}">Şifremi unuttum</a></small>
                     </div>
-                </div>
+
+                    </div>
             </div>
         </div>
     </div>
