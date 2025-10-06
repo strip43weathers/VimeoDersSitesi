@@ -34,6 +34,6 @@ urlpatterns = [
     path('', include('sayfalar.urls')),
 ]
 
-# Medya dosyası URL'lerini listenin BAŞINA ekliyoruz.
+# Medya dosyalarının geliştirme ortamında sunulması için URL desenini listenin SONUNA ekleyin.
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
