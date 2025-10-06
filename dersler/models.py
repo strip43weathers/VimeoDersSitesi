@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 class Kurs(models.Model):
     baslik = models.CharField(max_length=200, verbose_name="Kurs Başlığı")
     aciklama = models.TextField(verbose_name="Kurs Açıklaması", blank=True, null=True)
-    gorsel = models.ImageField(upload_to='kurs_gorselleri/', blank=True, null=True, verbose_name="Kurs Görseli")
+    #gorsel = models.ImageField(upload_to='kurs_gorselleri/', blank=True, null=True, verbose_name="Kurs Görseli")
     olusturulma_tarihi = models.DateTimeField(auto_now_add=True)
 
     herkese_acik = models.BooleanField(default=True, verbose_name="Herkese Açık")
