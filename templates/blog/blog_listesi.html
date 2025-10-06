@@ -1,49 +1,126 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Blog - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .blog-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    .blog-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+    .blog-card .card-body {
+        padding: 2rem;
+    }
+    .blog-card .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+    .blog-card .card-text {
+        color: #666;
+        line-height: 1.6;
+    }
+    .blog-card .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        border-radius: 50px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+    .blog-card .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+    }
+    .modal-body img {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container py-5">
 
-    {# YENİ EKLENEN VİDEO BÖLÜMÜ #}
-    {% if rehber_video %}
-    <div class="mb-5 text-center">
-        <h2 class="display-6 fw-bold">{{ rehber_video.baslik }}</h2>
-        <div style="padding:56.25% 0 0 0;position:relative;" class="mt-4 mb-4 shadow-sm rounded">
-            <iframe
-                src="https://player.vimeo.com/video/{{ rehber_video.vimeo_video_id }}?title=0&byline=0&portrait=0"
-                style="position:absolute;top:0;left:0;width:100%;height:100%;"
-                frameborder="0"
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowfullscreen>
-            </iframe>
+    {# VİDEO BÖLÜMÜ AKORDİYON İÇİNDE #}
+    {% if rehber_videolar %}
+    <div class="accordion mb-5" id="videoAccordion">
+        {% for video in rehber_videolar %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingVideo-{{ video.id }}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVideo-{{ video.id }}" aria-expanded="false" aria-controls="collapseVideo-{{ video.id }}">
+                    {{ video.baslik }}
+                </button>
+            </h2>
+            <div id="collapseVideo-{{ video.id }}" class="accordion-collapse collapse" aria-labelledby="headingVideo-{{ video.id }}" data-bs-parent="#videoAccordion">
+                <div class="accordion-body">
+                    <div style="padding:56.25% 0 0 0;position:relative;" class="shadow-sm rounded">
+                        <iframe
+                            src="https://player.vimeo.com/video/{{ video.vimeo_video_id }}?title=0&byline=0&portrait=0"
+                            style="position:absolute;top:0;left:0;width:100%;height:100%;"
+                            frameborder="0"
+                            allow="autoplay; fullscreen; picture-in-picture"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                    <script src="https://player.vimeo.com/api/player.js"></script>
+                </div>
+            </div>
         </div>
-        <script src="https://player.vimeo.com/api/player.js"></script>
+        {% endfor %}
     </div>
     <hr class="my-5">
     {% endif %}
     {# VİDEO BÖLÜMÜ SONU #}
 
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold">Kurslar ve Paketler Hakkında Bilgiler</h1>
+        <p class="lead text-muted">Aşağıdaki başlıklardan merak ettiğiniz konular hakkında daha fazla bilgi edinebilirsiniz.</p>
+    </div>
 
-    <h1 class="display-5 fw-bold mb-4 text-center">Kurslar ve Paketler Hakkında Bilgiler</h1>
-    <p class="text-center text-muted mb-5">Merak ettiğiniz kurs veya paket hakkında detaylı bilgi almak için başlığın üzerine tıklayın.</p>
-
-    <div class="accordion" id="blogAccordion">
+    <div class="row g-4">
         {% for yazi in yazilar %}
-            <div class="accordion-item">
-                <h2 class="accordion-header" id="heading-{{ yazi.id }}">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ yazi.id }}" aria-expanded="false" aria-controls="collapse-{{ yazi.id }}">
-                        {{ yazi.baslik }}
-                    </button>
-                </h2>
-                <div id="collapse-{{ yazi.id }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ yazi.id }}" data-bs-parent="#blogAccordion">
-                    <div class="accordion-body">
-                        {{ yazi.icerik|safe }}
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 shadow-sm blog-card">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ yazi.baslik }}</h5>
+                        <div class="card-text mb-4">
+                            {{ yazi.ozet|safe }}
+                        </div>
+                        <div class="mt-auto">
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-{{ yazi.id }}">
+                                Devamını Oku
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="modal-{{ yazi.id }}" tabindex="-1" aria-labelledby="modalLabel-{{ yazi.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalLabel-{{ yazi.id }}">{{ yazi.baslik }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            {{ yazi.icerik|safe }}
+                        </div>
                     </div>
                 </div>
             </div>
         {% empty %}
-            <p class="text-center">Henüz blog yazısı eklenmemiş.</p>
+            <div class="col">
+                <p class="text-center">Henüz blog yazısı eklenmemiş.</p>
+            </div>
         {% endfor %}
     </div>
 </div>
