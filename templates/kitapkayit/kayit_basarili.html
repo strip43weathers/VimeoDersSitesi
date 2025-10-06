@@ -1,0 +1,19 @@
+{# templates/kitapkayit/kayit_basarili.html #}
+{% extends 'base.html' %}
+
+{% block title %}Kayıt Başarılı - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+            <h1 class="display-5 fw-bold mt-3">Teşekkür Ederiz!</h1>
+            <p class="lead my-4">
+                Kitap talebiniz başarıyla alınmıştır. En kısa sürede sizinle iletişime geçilecektir.
+            </p>
+            <a href="{% url 'anasayfa' %}" class="btn btn-primary btn-lg">Ana Sayfaya Dön</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -3,10 +3,16 @@ from .models import Kurs, Ders
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponseForbidden
+from sayfalar.models import RehberVideo
 
 
 def anasayfa_view(request):
-    return render(request, 'anasayfa.html')
+    # Sadece ana sayfa için aktif olan videoyu çek
+    rehber_video = RehberVideo.objects.filter(aktif=True, sayfa='anasayfa').first()
+    context = {
+        'rehber_video': rehber_video
+    }
+    return render(request, 'anasayfa.html', context)
 
 
 @login_required

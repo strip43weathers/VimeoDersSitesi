@@ -119,11 +119,17 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'dersler:kurs_listesi' %}">Kurslar</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'blog:blog_listesi' %}">Blog</a> {# YENİ EKLENEN SATIR #}
+                    </li>
                     <li class="nav-item"><span class="navbar-text mx-2">Merhaba, {{ user.first_name|default:user.username }}!</span></li>
                     <li class="nav-item">
                         <form action="{% url 'logout' %}" method="post">{% csrf_token %}<button type="submit" class="btn btn-outline-secondary btn-sm">Çıkış Yap</button></form>
                     </li>
                 {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'blog:blog_listesi' %}">Blog</a>
+                    </li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Giriş Yap</a></li>
                     {% endif %}
             </ul>

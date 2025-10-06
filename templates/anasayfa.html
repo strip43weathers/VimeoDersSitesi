@@ -45,7 +45,24 @@
             </div>
         </div>
     </div>
-
+<div class="container my-5 py-5 text-center bg-light rounded-3 shadow-sm">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <i class="bi bi-camera-reels-fill h1 text-primary mb-3"></i>
+            <h2 class="display-6 fw-bold">{{ rehber_video.baslik }}</h2>
+            <div style="padding:56.25% 0 0 0;position:relative;" class="mt-4 mb-4 shadow-sm rounded">
+                <iframe
+                    src="https://player.vimeo.com/video/{{ rehber_video.vimeo_video_id }}?title=0&byline=0&portrait=0"
+                    style="position:absolute;top:0;left:0;width:100%;height:100%;"
+                    frameborder="0"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowfullscreen>
+                </iframe>
+            </div>
+            <script src="https://player.vimeo.com/api/player.js"></script>
+        </div>
+    </div>
+</div>
     <div class="container my-5">
         <div class="row align-items-center g-5">
             <div class="col-lg-6">
@@ -60,10 +77,26 @@
                 </ul>
             </div>
             <div class="col-lg-6 text-center">
-                <i class="bi bi-rocket-takeoff-fill text-primary" style="font-size: 12rem; text-shadow: 0 4px 15px rgba(0,0,0,0.1);"></i>
             </div>
         </div>
     </div>
+    
+    <div class="container my-5 py-5 text-center bg-light rounded-3 shadow-sm">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <i class="bi bi-file-earmark-text-fill h1 text-primary mb-3"></i>
+                <h2 class="display-6 fw-bold">Kurslar ve Sınav Paketleri Hakkında Her Şey!</h2>
+                <p class="lead text-muted my-4">
+                    Sunduğumuz eğitimler, seviyeler ve sınav hazırlık paketleri hakkında merak ettiğiniz tüm detaylara blog sayfamızdan ulaşabilirsiniz. Tüm seviyeler hakkında bilgi alın!
+                </p>
+                <a href="{% url 'blog:blog_listesi' %}" class="btn btn-primary btn-lg fw-bold">
+                    Blogu Keşfet!
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row text-center mt-5 pt-4">
 
     <div class="row text-center mt-5 pt-4">
         <div class="col-md-4">
