@@ -13,6 +13,11 @@ class Sinav(models.Model):
 class SinavSiparisi(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Kullanıcı")
     sinav = models.ForeignKey(Sinav, on_delete=models.CASCADE, verbose_name="Sınav")
+    ad = models.CharField(max_length=100, verbose_name="Ad")
+    soyad = models.CharField(max_length=100, verbose_name="Soyad")
+    email = models.EmailField(verbose_name="E-posta")
+    telefon = models.CharField(max_length=20, verbose_name="Telefon Numarası")
+    adres = models.TextField(verbose_name="Adres")
     tarih = models.DateTimeField(auto_now_add=True)
     odeme_tamamlandi = models.BooleanField(default=False)
 
