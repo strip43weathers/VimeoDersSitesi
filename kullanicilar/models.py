@@ -6,7 +6,7 @@ class Profil(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
-    onaylandi = models.BooleanField(default=False, verbose_name="Hesap Onaylandı")
+    onaylandi = models.BooleanField(default=True, verbose_name="Hesap Onaylandı")
 
     def __str__(self):
         return self.user.username

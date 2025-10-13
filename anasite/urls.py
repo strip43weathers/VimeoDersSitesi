@@ -20,6 +20,7 @@ urlpatterns = [
     path('kitap-kayit/', include('kitapkayit.urls')),
     path('kurslar/', include('dersler.urls')),
     path('oyunlar/', include('oyunlar.urls')),
+    path('odeme/', include('odeme.urls')),
     path('kullanicilar/', include('kullanicilar.urls')),
     path(
         'hesaplar/password_reset/',

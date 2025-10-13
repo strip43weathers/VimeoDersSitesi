@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Sertifika Sınavı Hakkında - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-body p-5">
+                    <h1 class="card-title text-center mb-4">Sertifika Sınavı</h1>
+                    
+                    <p class="lead">
+                        Bu sınav, alanınızdaki bilgi ve becerilerinizi uluslararası düzeyde kanıtlamanız için tasarlanmıştır. 
+                        Başarıyla tamamladığınızda, kariyerinizde önemli bir adım atmanızı sağlayacak prestijli bir sertifikaya sahip olacaksınız.
+                    </p>
+
+                    <hr class="my-4">
+
+                    <h4 class="mt-4">Sınav Detayları</h4>
+                    <ul>
+                        <li><strong>Sınav Formatı:</strong> Çoktan seçmeli ve pratik uygulama soruları.</li>
+                        <li><strong>Süre:</strong> 120 Dakika.</li>
+                        <li><strong>Değerlendirme:</strong> Sınav sonucunuz 48 saat içinde e-posta adresinize gönderilecektir.</li>
+                        <li><strong>Geçme Notu:</strong> 100 üzerinden 70.</li>
+                    </ul>
+
+                    <h4 class="mt-4">Neden Bu Sınava Girmelisiniz?</h4>
+                    <p>
+                        Sertifikamız, sektördeki en tanınmış yeterliliklerden biridir. Bu sertifika ile yetkinliğinizi kanıtlayabilir, 
+                        yeni iş fırsatları yaratabilir ve kariyerinizde bir adım öne geçebilirsiniz.
+                    </p>
+
+                    <div class="text-center mt-5">
+                        <div class="alert alert-primary">
+                            <h4>Sınav Giriş Ücreti: 150 EUR</h4>
+                        </div>
+                        
+                        {# Kullanıcı giriş yapmışsa satın al butonunu göster #}
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'odeme:sinav_satin_al' %}" class="btn btn-success btn-lg shadow">
+                                <i class="bi bi-credit-card me-2"></i> Şimdi Satın Al ve Sınava Kaydol
+                            </a>
+                        {# Kullanıcı giriş yapmamışsa, önce giriş yapması için yönlendir #}
+                        {% else %}
+                            <a href="{% url 'login' %}?next={% url 'odeme:sinav_satin_al' %}" class="btn btn-primary btn-lg shadow">
+                                <i class="bi bi-box-arrow-in-right me-2"></i> Satın Almak İçin Giriş Yapın
+                            </a>
+                            <p class="text-muted small mt-2">Sınavı satın alabilmek için üye olmanız ve giriş yapmanız gerekmektedir.</p>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

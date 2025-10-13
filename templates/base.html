@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Romingo Academy ile A'dan Z'ye online Romence öğrenin. Video dersler ve interaktif kurslarla dil öğrenim yolculuğunuza başlayın.">
-    <meta name="keywords" content="romence öğren, online romence, romence dersleri, romingo academy, romence kursu, rumence öğren, online rumence, rumence dersleri, romingo akademi, rumence kursu">
+    <meta name="keywords" content="romence öğren, online romence, romence dersleri, romingo academy, romence kursu, rumence öğren, online rumence, rumence dersleri, romingo akademi, rumence kursu, rumence, romence, romingo">
     <meta name="author" content="Romingo Academy, Romingo Akademi">
     <meta name="google-site-verification" content="Z8DATT0U9f5k9f9cihVBr8dPdgyTJdOECZspTlbiFt4" />
     <title>{% block title %}Romingo Academy{% endblock %}</title>
@@ -120,6 +120,9 @@
                         <a class="nav-link" href="{% url 'dersler:kurs_listesi' %}">Kurslar</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{% url 'odeme:sinav_bilgilendirme' %}">Sertifika Sınavı</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{% url 'blog:blog_listesi' %}">Blog</a> {# YENİ EKLENEN SATIR #}
                     </li>
                     <li class="nav-item"><span class="navbar-text mx-2">Merhaba, {{ user.first_name|default:user.username }}!</span></li>
@@ -127,6 +130,9 @@
                         <form action="{% url 'logout' %}" method="post">{% csrf_token %}<button type="submit" class="btn btn-outline-secondary btn-sm">Çıkış Yap</button></form>
                     </li>
                 {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'odeme:sinav_bilgilendirme' %}">Sertifika Sınavı</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'blog:blog_listesi' %}">Blog</a>
                     </li>

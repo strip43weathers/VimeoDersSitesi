@@ -10,8 +10,8 @@ def kayit_view(request):
         if form.is_valid():
             user = form.save()
 
-            Profil.objects.create(user=user, onaylandi=False)
-            messages.success(request, 'Tebrikler başarıyla kaydoldunuz. Yönetici hesabınızı onayladıktan sonra giriş yapabileceksiniz.')
+            Profil.objects.create(user=user, onaylandi=True)
+            messages.success(request, 'Tebrikler başarıyla kaydoldunuz.')
 
             return redirect('login')
     else:

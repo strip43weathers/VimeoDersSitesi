@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Satış Sözleşmesi - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <h1 class="text-center mb-4">Mesafeli Satış Sözleşmesi</h1>
+            
+            <h4>MADDE 1: TARAFLAR</h4>
+            <p><strong>Satıcı:</strong> [Şirket Adınız]</p>
+            <p><strong>Alıcı:</strong> {{ request.user.get_full_name|default:request.user.username }}</p>
+
+            <hr>
+
+            <h4>MADDE 2: SÖZLEŞMENİN KONUSU</h4>
+            <p>İşbu sözleşmenin konusu, ALICI'nın SATICI'ya ait [www.siteadresiniz.com] internet sitesinden elektronik ortamda siparişini yaptığı aşağıda nitelikleri ve satış fiyatı belirtilen hizmetin satışı ve teslimi ile ilgili olarak 4077 sayılı Tüketicilerin Korunması Hakkındaki Kanun ve Mesafeli Sözleşmelere Dair Yönetmelik hükümleri gereğince tarafların hak ve yükümlülüklerinin saptanmasıdır.</p>
+
+            <hr>
+
+            <h4>MADDE 3: HİZMET BİLGİLERİ</h4>
+            <p><strong>Hizmetin Adı:</strong> Sertifika Sınavı</p>
+            <p><strong>Satış Fiyatı:</strong> 150 EUR</p>
+            
+            <hr>
+
+            <h4>MADDE 4: CAYMA HAKKI VE İADE KOŞULLARI</h4>
+            <p>Elektronik ortamda anında ifa edilen hizmetler ve tüketiciye anında teslim edilen gayrimaddi mallara ilişkin sözleşmeler cayma hakkının istisnaları kapsamındadır. Satın alınan sertifika sınavı hizmeti, dijital içerik olduğundan ve hizmet anında kullanıcıya tanımlandığından, ALICI'nın bu hizmetten cayma ve iade talep etme hakkı bulunmamaktadır. ALICI, bu satın almayı gerçekleştirdiğinde bu şartı peşinen kabul etmiş sayılır.</p>
+
+            <p class="mt-4">
+                <a href="javascript:history.back()" class="btn btn-secondary">Geri Dön</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

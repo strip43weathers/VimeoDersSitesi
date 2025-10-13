@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Sınav Kaydı Başarılı - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-success">
+                <div class="card-body p-5">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                    <h2 class="card-title mt-3">Sınav Kaydınız Başarıyla Alındı!</h2>
+                    <p class="card-text text-muted mt-3">
+                        Sınav satın alma işleminiz başarıyla tamamlanmıştır. Sınavla ilgili detaylar için yöneticilerimiz sizinle iletişime geçecektir.
+                    </p>
+                    <hr>
+                    <p>Bu sırada sitemizdeki diğer içeriklere göz atabilirsiniz.</p>
+                    <a href="{% url 'dersler:kurs_listesi' %}" class="btn btn-primary me-2">
+                        <i class="bi bi-book me-2"></i> Kursları İncele
+                    </a>
+                    <a href="{% url 'anasayfa' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-house me-2"></i> Ana Sayfaya Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

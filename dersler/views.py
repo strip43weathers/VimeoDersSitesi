@@ -1,3 +1,5 @@
+# dersler/views.py
+
 from django.shortcuts import render, get_object_or_404
 from .models import Kurs, Ders
 from django.contrib.auth.decorators import login_required
@@ -17,7 +19,7 @@ def anasayfa_view(request):
 
 @login_required
 def kurs_listesi(request):
-
+    # Orijinal hali: Herkese açık veya özel izinli kursları listeler
     kurslar = Kurs.objects.filter(
         Q(herkese_acik=True) | Q(izinli_kullanicilar=request.user)
     ).distinct()
@@ -28,8 +30,8 @@ def kurs_listesi(request):
 def kurs_detay(request, kurs_id):
     kurs = get_object_or_404(Kurs, pk=kurs_id)
 
+    # Orijinal hali: Herkese açık değilse ve kullanıcı izinli değilse engelle
     if not kurs.herkese_acik and request.user not in kurs.izinli_kullanicilar.all():
-
         return render(request, '403.html', status=403)
 
     return render(request, 'dersler/kurs_detay.html', {'kurs': kurs})
@@ -39,6 +41,7 @@ def kurs_detay(request, kurs_id):
 def ders_detay(request, kurs_id, ders_id):
     kurs = get_object_or_404(Kurs, pk=kurs_id)
 
+    # Orijinal hali: Herkese açık değilse ve kullanıcı izinli değilse engelle
     if not kurs.herkese_acik and request.user not in kurs.izinli_kullanicilar.all():
         return render(request, '403.html', status=403)
 

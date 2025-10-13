@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'ckeditor',
     'blog',
     'kitapkayit',
+    'odeme',
 ]
 
 MIDDLEWARE = [
