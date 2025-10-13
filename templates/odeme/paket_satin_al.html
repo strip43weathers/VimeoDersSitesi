@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>{{ paket.baslik }} Paketini Satın Al</h2>
+    <p>Lütfen kaydolmak için aşağıdaki bilgileri doldurun.</p>
+    
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <hr>
+        <p><strong>Ödenecek Tutar: {{ paket.fiyat }} EURO</strong></p>
+        <button type="submit" class="btn btn-success">Ödemeyi Tamamla ve Kaydol</button>
+    </form>
+</div>
+{% endblock %}

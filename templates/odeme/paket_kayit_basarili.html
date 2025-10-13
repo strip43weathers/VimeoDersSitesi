@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="alert alert-success" role="alert">
+        <h4 class="alert-heading">Tebrikler!</h4>
+        <p>Eğitim paketi kaydınız başarıyla tamamlanmıştır. Derslerinize profil sayfanızdan veya ilgili dersler menüsünden ulaşabilirsiniz.</p>
+        <hr>
+        <a href="{% url 'anasayfa' %}" class="btn btn-success">Ana Sayfaya Dön</a>
+        <a href="{% url 'dersler:kurs_listesi' %}" class="btn btn-info">Tüm Dersleri Gör</a>
+    </div>
+</div>
+{% endblock %}

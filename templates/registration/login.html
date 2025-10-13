@@ -9,6 +9,12 @@
             <div class="card shadow-sm">
                 <div class="card-body p-5">
                     <h2 class="card-title text-center mb-4">Kullanıcı Girişi</h2>
+                
+                    {% if request.GET.next %}
+                    <div class="alert alert-warning" role="alert">
+                        Bu işlemi yapabilmek için lütfen giriş yapınız.
+                    </div>
+                    {% endif %}
 
                     {% if messages %}
                         {% for message in messages %}
