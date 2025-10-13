@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>"{{ kitap.baslik }}" Satın Alma</h1>
+
+    {% if indirimli_fiyat %}
+        <p>Normal Fiyat: <del>{{ kitap.fiyat }} EURO</del></p>
+        <h4 class="text-success">Size Özel İndirimli Fiyat: {{ indirimli_fiyat }} EURO</h4>
+    {% else %}
+        <h4>Fiyat: {{ kitap.fiyat }} EURO</h4>
+    {% endif %}
+
+    <hr>
+    <h3>Teslimat Bilgileri</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Ödemeyi Tamamla</button>
+    </form>
+</div>
+{% endblock %}

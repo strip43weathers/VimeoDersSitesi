@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="alert alert-success">
+        <h1>Sipariş Başarılı!</h1>
+        <p>Kitap siparişiniz başarıyla alınmıştır. En kısa sürede adresinize kargolanacaktır.</p>
+        {# --- DÜZELTİLMİŞ SATIR --- #}
+        <a href="{% url 'odeme:kitap_listesi' %}" class="btn btn-primary">Kitap Sayfasına Dön</a>
+    </div>
+</div>
+{% endblock %}

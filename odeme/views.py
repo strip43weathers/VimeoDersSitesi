@@ -2,9 +2,9 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Sinav, SinavSiparisi, EgitimPaketi, PaketSiparisi
+from .models import Sinav, SinavSiparisi, EgitimPaketi, PaketSiparisi, Kitap, KitapSiparisi # Yeni modelleri ekleyin
+from .forms import SiparisForm, PaketSiparisForm, KitapSiparisForm # Yeni formu ekleyin
 from django.contrib import messages
-from .forms import SiparisForm, PaketSiparisForm
 from django.utils import timezone
 import datetime
 from kullanicilar.models import Profil
@@ -130,6 +130,88 @@ def paket_satin_al(request, paket_id):
 def paket_kayit_basarili(request):
     return render(request, 'odeme/paket_kayit_basarili.html')
 
+
 @login_required
 def paket_kayit_mevcut(request):
     return render(request, 'odeme/paket_kayit_mevcut.html')
+
+
+def kitap_listesi(request):
+    kitaplar = Kitap.objects.all()
+    indirim_aktif = False
+    indirim_bitis_tarihi = None
+
+    if request.user.is_authenticated:
+        try:
+            profil = Profil.objects.get(user=request.user)
+            kayit_suresi = timezone.now() - profil.kayit_tarihi
+
+            if kayit_suresi < datetime.timedelta(days=1):
+                indirim_aktif = True
+                indirim_bitis_tarihi = profil.kayit_tarihi + datetime.timedelta(days=1)
+                for kitap in kitaplar:
+                    # %10 indirim uygula
+                    kitap.indirimli_fiyat = (kitap.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
+        except Profil.DoesNotExist:
+            pass
+
+    context = {
+        'kitaplar': kitaplar,
+        'indirim_aktif': indirim_aktif,
+        'indirim_bitis_tarihi': indirim_bitis_tarihi.isoformat() if indirim_bitis_tarihi else None
+    }
+    return render(request, 'odeme/kitap_listesi.html', context)
+
+
+@login_required
+def kitap_satin_al(request, kitap_id):
+    kitap = get_object_or_404(Kitap, id=kitap_id)
+    mevcut_siparis = KitapSiparisi.objects.filter(user=request.user, kitap=kitap, odeme_tamamlandi=True).first()
+    if mevcut_siparis:
+        messages.info(request, f'"{kitap.baslik}" adlı kitaba zaten sahipsiniz.')
+        return redirect('odeme:kitap_kayit_mevcut')
+
+    indirimli_fiyat = None
+    try:
+        profil = Profil.objects.get(user=request.user)
+        if timezone.now() - profil.kayit_tarihi < datetime.timedelta(days=1):
+            indirimli_fiyat = (kitap.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
+    except Profil.DoesNotExist:
+        pass
+
+    if request.method == 'POST':
+        form = KitapSiparisForm(request.POST)
+        if form.is_valid():
+            payment_is_successful = True
+            if payment_is_successful:
+                siparis = form.save(commit=False)
+                siparis.user = request.user
+                siparis.kitap = kitap
+                siparis.odeme_tamamlandi = True
+                siparis.save()
+                return redirect('odeme:kitap_kayit_basarili')
+            else:
+                messages.error(request, 'Ödeme sırasında bir hata oluştu.')
+    else:
+        form = KitapSiparisForm(initial={
+            'ad': request.user.first_name,
+            'soyad': request.user.last_name,
+            'email': request.user.email
+        })
+
+    context = {
+        'kitap': kitap,
+        'form': form,
+        'indirimli_fiyat': indirimli_fiyat
+    }
+    return render(request, 'odeme/kitap_satin_al.html', context)
+
+
+@login_required
+def kitap_kayit_basarili(request):
+    return render(request, 'odeme/kitap_kayit_basarili.html')
+
+
+@login_required
+def kitap_kayit_mevcut(request):
+    return render(request, 'odeme/kitap_kayit_mevcut.html')

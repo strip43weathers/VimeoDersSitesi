@@ -22,4 +22,10 @@ urlpatterns = [
     # Yeni Eklenen Paket Yönlendirme URL'leri
     path('paket-kayit-basarili/', views.paket_kayit_basarili, name='paket_kayit_basarili'),
     path('paket-kayit-mevcut/', views.paket_kayit_mevcut, name='paket_kayit_mevcut'),
+
+    # --- KİTAP URL'LERİ ---
+    path('kitaplar/', views.kitap_listesi, name='kitap_listesi'),
+    path('kitap-satin-al/<int:kitap_id>/', views.kitap_satin_al, name='kitap_satin_al'),
+    path('kitap-kayit-basarili/', views.kitap_kayit_basarili, name='kitap_kayit_basarili'),
+    path('kitap-kayit-mevcut/', views.kitap_kayit_mevcut, name='kitap_kayit_mevcut'),
 ]

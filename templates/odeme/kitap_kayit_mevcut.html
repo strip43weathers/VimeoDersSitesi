@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="alert alert-info">
+        <h1>Bilgilendirme</h1>
+        <p>Bu kitaba zaten sahipsiniz.</p>
+        {# --- DÜZELTİLMİŞ SATIR --- #}
+        <a href="{% url 'odeme:kitap_listesi' %}" class="btn btn-secondary">Kitap Sayfasına Dön</a>
+    </div>
+</div>
+{% endblock %}

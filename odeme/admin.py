@@ -1,7 +1,8 @@
 # odeme/admin.py
 
 from django.contrib import admin
-from .models import Sinav, SinavSiparisi, EgitimPaketi, PaketSiparisi # Yeni modelleri import et
+from .models import Sinav, SinavSiparisi, EgitimPaketi, PaketSiparisi, Kitap, KitapSiparisi
+
 
 # --- MEVCUT KAYITLAR ---
 class SinavSiparisiAdmin(admin.ModelAdmin):
@@ -9,6 +10,11 @@ class SinavSiparisiAdmin(admin.ModelAdmin):
     list_filter = ('odeme_tamamlandi',)
     search_fields = ('user__username', 'ad', 'soyad')
     readonly_fields = ('user', 'sinav', 'tarih')
+
+
+admin.site.register(Kitap)
+admin.site.register(KitapSiparisi)
+
 
 admin.site.register(Sinav)
 admin.site.register(SinavSiparisi, SinavSiparisiAdmin)

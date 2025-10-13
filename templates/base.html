@@ -123,6 +123,9 @@
                         <a class="nav-link" href="{% url 'odeme:paket_listesi' %}">Eğitim Paketleri</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{% url 'odeme:kitap_listesi' %}">Kitaplar</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{% url 'odeme:sinav_bilgilendirme' %}">Sertifika Sınavı</a>
                     </li>
                     <li class="nav-item">
@@ -133,6 +136,9 @@
                         <form action="{% url 'logout' %}" method="post">{% csrf_token %}<button type="submit" class="btn btn-outline-secondary btn-sm">Çıkış Yap</button></form>
                     </li>
                 {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'odeme:kitap_listesi' %}">Kitaplar</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'odeme:paket_listesi' %}">Eğitim Paketleri</a>
                     </li>
