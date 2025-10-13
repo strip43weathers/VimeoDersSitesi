@@ -1,73 +1,96 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1>Kitaplar</h1>
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold">Kitaplarımız</h1>
+        <p class="lead text-muted">Bilgiye giden yolda size eşlik edecek kaynaklar. Keşfedin ve okumaya başlayın!</p>
+    </div>
 
+    {# --- İNDİRİM BİLGİLENDİRME ALANI --- #}
     {% if user.is_authenticated %}
         {% if indirim_aktif %}
-        <div class="alert alert-success" role="alert">
-            <h4 class="alert-heading">Yeni Üyeliğe Özel Fırsat!</h4>
-            <p>Tebrikler! Yeni kayıt olduğunuz için 24 saat boyunca tüm kitaplarda geçerli %10 indirim kazandınız. Bu fırsatı kaçırmayın!</p>
-            <hr>
-            <p class="mb-0">Fırsatın bitmesine kalan süre: <strong id="countdown-timer"></strong></p>
+        <div class="alert alert-success d-flex align-items-center shadow-sm" role="alert">
+            <i class="fas fa-gift fa-2x me-3"></i>
+            <div>
+                <h4 class="alert-heading">Yeni Üyeliğe Özel Fırsat!</h4>
+                <p>Tebrikler! Yeni kayıt olduğunuz için 24 saat boyunca tüm kitaplarda geçerli <strong>%10 indirim</strong> kazandınız.</p>
+                <hr>
+                <p class="mb-0">Fırsatın bitmesine kalan süre: <strong id="countdown-timer"></strong></p>
+            </div>
         </div>
         {% endif %}
     {% else %}
-    <div class="alert alert-info" role="alert">
-        <h4 class="alert-heading">Yeni Kayıt Olanlara Özel %10 İndirim!</h4>
+    <div class="alert alert-info d-flex align-items-center shadow-sm" role="alert">
+        <i class="fas fa-percentage fa-2x me-3"></i>
+        <div>
+            <h4 class="alert-heading">Yeni Kayıt Olanlara Özel %10 İndirim!</h4>
+            <p>Kitaplarda geçerli %10 indirim fırsatından yararlanmak için hemen şimdi <a href="{% url 'kullanicilar:kayit' %}" class="alert-link">kaydolun</a>. Kayıt olduktan sonraki 24 saat boyunca indirimden faydalanabilirsiniz.</p>
+        </div>
     </div>
     {% endif %}
+    {# --- İNDİRİM ALANI SONU --- #}
 
-    <div class="row">
+    <div class="row g-4 mt-4">
         {% for kitap in kitaplar %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">{{ kitap.baslik }}</h5>
-                        <p class="card-text">{{ kitap.aciklama|truncatewords:20 }}</p>
-                        <div class="mt-auto">
-                            {% if kitap.indirimli_fiyat %}
-                                <p class="card-text">Fiyat: <del>{{ kitap.fiyat }} EURO</del></p>
-                                <h5 class="text-success">İndirimli Fiyat: {{ kitap.indirimli_fiyat }} EURO</h5>
-                            {% else %}
-                                <h5 class="card-text">Fiyat: {{ kitap.fiyat }} EURO</h5>
-                            {% endif %}
-                            <a href="{% url 'odeme:kitap_satin_al' kitap.id %}" class="btn btn-primary">Satın Al</a>
-                        </div>
+        <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
+            <div class="card h-100 shadow-sm border-0 rounded-3 text-center">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title fw-bold text-primary">{{ kitap.baslik }}</h4>
+                    <p class="card-text text-muted flex-grow-1">{{ kitap.aciklama|truncatewords:20 }}</p>
+                    <div class="mt-auto">
+                        {% if kitap.indirimli_fiyat %}
+                            <p class="text-muted mb-1"><del>{{ kitap.fiyat }} EURO</del></p>
+                            <h3 class="fw-bold text-success">{{ kitap.indirimli_fiyat }} EURO</h3>
+                        {% else %}
+                            <h3 class="fw-bold text-dark">{{ kitap.fiyat }} EURO</h3>
+                        {% endif %}
+                        <a href="{% url 'odeme:kitap_satin_al' kitap.id %}" class="btn btn-primary w-100 mt-3">
+                            <i class="fas fa-book-open me-2"></i>Satın Al
+                        </a>
                     </div>
                 </div>
             </div>
+        </div>
         {% empty %}
-            <p>Şu anda satışta olan bir kitap bulunmamaktadır.</p>
+        <div class="col-12">
+            <div class="alert alert-warning text-center">
+                <p class="mb-0">Şu anda satışta olan bir kitap bulunmamaktadır.</p>
+            </div>
+        </div>
         {% endfor %}
     </div>
+</div>
 
-    {# --- YENİ EKLENEN JAVASCRIPT KISMI --- #}
-    {% if indirim_aktif %}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var countDownDate = new Date("{{ indirim_bitis_tarihi }}").getTime();
+{# --- JAVASCRIPT KISMI --- #}
+{% if indirim_aktif %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var countDownDate = new Date("{{ indirim_bitis_tarihi }}").getTime();
+        var timerElement = document.getElementById("countdown-timer");
 
+        if (timerElement) {
             var countdownFunction = setInterval(function() {
                 var now = new Date().getTime();
                 var distance = countDownDate - now;
+
+                if (distance < 0) {
+                    clearInterval(countdownFunction);
+                    timerElement.innerHTML = "SÜRE DOLDU";
+                     timerElement.closest('.alert').style.display = 'none'; 
+                    return;
+                }
 
                 var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                 var seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-                document.getElementById("countdown-timer").innerHTML = hours + " saat "
-                + minutes + " dakika " + seconds + " saniye ";
-
-                if (distance < 0) {
-                    clearInterval(countdownFunction);
-                    document.getElementById("countdown-timer").innerHTML = "SÜRE DOLDU";
-                }
+                timerElement.innerHTML = hours + " saat " + minutes + " dakika " + seconds + " saniye ";
             }, 1000);
-        });
-    </script>
-    {% endif %}
-    {# --- JAVASCRIPT KISMININ SONU --- #}
-</div>
+        }
+    });
+</script>
+{% endif %}
+{# --- JAVASCRIPT KISMININ SONU --- #}
 {% endblock %}

@@ -1,36 +1,35 @@
-{% extends 'base.html' %}
-
-{% block title %}Satış Sözleşmesi - {{ block.super }}{% endblock %}
-
+{% extends "base.html" %}
 {% block content %}
-<div class="container mt-5">
+<div class="container my-5">
     <div class="row justify-content-center">
-        <div class="col-md-10">
-            <h1 class="text-center mb-4">Mesafeli Satış Sözleşmesi</h1>
-            
-            <h4>MADDE 1: TARAFLAR</h4>
-            <p><strong>Satıcı:</strong> [Şirket Adınız]</p>
-            <p><strong>Alıcı:</strong> {{ request.user.get_full_name|default:request.user.username }}</p>
+        <div class="col-lg-10">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-4">
+                    <h2 class="text-center mb-0">Mesafeli Satış Sözleşmesi</h2>
+                </div>
+                <div class="card-body p-5">
+                    <p class="text-muted">Lütfen hizmetlerimizi veya ürünlerimizi satın almadan önce aşağıdaki sözleşmeyi dikkatlice okuyunuz.</p>
+                    <hr>
 
-            <hr>
+                    <h4 class="mt-4">MADDE 1: TARAFLAR</h4>
+                    <p><strong>1.1. SATICI:</strong> [Şirket Adınız], Adres: [Şirket Adresiniz], E-posta: [E-posta Adresiniz]</p>
+                    <p><strong>1.2. ALICI:</strong> Hizmeti/ürünü satın alan kişi.</p>
 
-            <h4>MADDE 2: SÖZLEŞMENİN KONUSU</h4>
-            <p>İşbu sözleşmenin konusu, ALICI'nın SATICI'ya ait [www.siteadresiniz.com] internet sitesinden elektronik ortamda siparişini yaptığı aşağıda nitelikleri ve satış fiyatı belirtilen hizmetin satışı ve teslimi ile ilgili olarak 4077 sayılı Tüketicilerin Korunması Hakkındaki Kanun ve Mesafeli Sözleşmelere Dair Yönetmelik hükümleri gereğince tarafların hak ve yükümlülüklerinin saptanmasıdır.</p>
+                    <h4 class="mt-4">MADDE 2: SÖZLEŞMENİN KONUSU</h4>
+                    <p>İşbu sözleşmenin konusu, ALICI'nın SATICI'ya ait internet sitesinden elektronik ortamda siparişini yaptığı aşağıda nitelikleri ve satış fiyatı belirtilen ürünün/hizmetin satışı ve teslimi ile ilgili olarak 6502 sayılı Tüketicinin Korunması Hakkındaki Kanun ve Mesafeli Sözleşmeler Yönetmeliği hükümleri gereğince tarafların hak ve yükümlülüklerinin saptanmasıdır.</p>
 
-            <hr>
+                    <h4 class="mt-4">MADDE 3: CAYMA HAKKI</h4>
+                    <p>ALICI, sözleşme konusu hizmetin/ürünün kendisine veya gösterdiği adresteki kişi/kuruluşa tesliminden itibaren 14 (ondört) gün içinde hiçbir gerekçe göstermeksizin cayma hakkına sahiptir...</p>
 
-            <h4>MADDE 3: HİZMET BİLGİLERİ</h4>
-            <p><strong>Hizmetin Adı:</strong> Sertifika Sınavı</p>
-            <p><strong>Satış Fiyatı:</strong> 150 EUR</p>
-            
-            <hr>
+                    <p><i>(Sözleşmenizin devamını buraya ekleyebilirsiniz.)</i></p>
 
-            <h4>MADDE 4: CAYMA HAKKI VE İADE KOŞULLARI</h4>
-            <p>Elektronik ortamda anında ifa edilen hizmetler ve tüketiciye anında teslim edilen gayrimaddi mallara ilişkin sözleşmeler cayma hakkının istisnaları kapsamındadır. Satın alınan sertifika sınavı hizmeti, dijital içerik olduğundan ve hizmet anında kullanıcıya tanımlandığından, ALICI'nın bu hizmetten cayma ve iade talep etme hakkı bulunmamaktadır. ALICI, bu satın almayı gerçekleştirdiğinde bu şartı peşinen kabul etmiş sayılır.</p>
-
-            <p class="mt-4">
-                <a href="javascript:history.back()" class="btn btn-secondary">Geri Dön</a>
-            </p>
+                    <div class="text-end mt-5">
+                        <button onclick="window.history.back();" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Geri Dön
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
