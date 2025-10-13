@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+
+    {% if sebep == 'giris_gerekli' %}
+    <div class="alert alert-warning text-center" role="alert">
+        <h4 class="alert-heading">Erişim Engellendi!</h4>
+        <p>Bu içeriği ve videoları görüntüleyebilmek için lütfen giriş yapın.</p>
+        <p>Eğer bir hesabınız yoksa, saniyeler içinde ücretsiz kaydolabilirsiniz.</p>
+        <hr>
+        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary btn-lg">Giriş Yap</a>
+    </div>
+
+    {% elif sebep == 'paket_gerekli' %}
+    <div class="alert alert-info text-center" role="alert">
+        <h4 class="alert-heading">Bu İçerik Size Özel!</h4>
+        <p>Videolara ve tüm kurs içeriklerine sınırsız erişim sağlamak için eğitim paketlerimizden birini satın almanız yeterli.</p>
+        <p>Hemen bir paket seçin ve öğrenmeye başlayın!</p>
+        <hr>
+        <a href="{% url 'odeme:paket_listesi' %}" class="btn btn-success btn-lg">Eğitim Paketlerini İncele</a>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

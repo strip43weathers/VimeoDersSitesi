@@ -16,11 +16,7 @@
                     </div>
                     {% endif %}
 
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-info small text-center">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
+                    
 
                     <form method="post">
                         {% csrf_token %}

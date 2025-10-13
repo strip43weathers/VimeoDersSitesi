@@ -2,48 +2,56 @@
 
 from django.shortcuts import render, get_object_or_404
 from .models import Kurs, Ders
-from django.contrib.auth.decorators import login_required
-from django.db.models import Q
-from django.http import HttpResponseForbidden
-from sayfalar.models import RehberVideo
-
+from odeme.models import PaketSiparisi
+from blog.models import BlogYazisi  # Hata burada düzeltildi: Post -> BlogYazisi
 
 def anasayfa_view(request):
-    # Sadece ana sayfa için aktif olan videoyu çek
-    rehber_video = RehberVideo.objects.filter(aktif=True, sayfa='anasayfa').first()
-    context = {
-        'rehber_video': rehber_video
-    }
-    return render(request, 'anasayfa.html', context)
+    """
+    Ana sayfayı render eder. Blog yazılarından son 3 tanesini de context'e ekler.
+    """
+    # Hata burada düzeltildi: Post -> BlogYazisi ve tarih -> olusturulma_tarihi
+    recent_posts = BlogYazisi.objects.order_by('-olusturulma_tarihi')[:3]
+    return render(request, 'anasayfa.html', {'recent_posts': recent_posts})
 
-
-@login_required
 def kurs_listesi(request):
-    # Orijinal hali: Herkese açık veya özel izinli kursları listeler
-    kurslar = Kurs.objects.filter(
-        Q(herkese_acik=True) | Q(izinli_kullanicilar=request.user)
-    ).distinct()
-    return render(request, 'dersler/kurs_listesi.html', {'kurslar': kurslar})
+    """
+    Tüm kursları listeler ve kullanıcının paket sahibi olup olmadığını kontrol eder.
+    """
+    kurslar = Kurs.objects.all()
+    kullanici_paket_sahibi_mi = False
+    if request.user.is_authenticated:
+        kullanici_paket_sahibi_mi = PaketSiparisi.objects.filter(user=request.user, odeme_tamamlandi=True).exists()
 
+    context = {
+        'kurslar': kurslar,
+        'kullanici_paket_sahibi_mi': kullanici_paket_sahibi_mi,
+    }
+    return render(request, 'dersler/kurs_listesi.html', context)
 
-@login_required
 def kurs_detay(request, kurs_id):
+    """
+    Bir kursun detaylarını ve derslerini gösterir.
+    Sadece paket sahibi olan kullanıcılar erişebilir.
+    """
+    if not request.user.is_authenticated:
+        return render(request, 'dersler/erisim_engellendi.html', {'sebep': 'giris_gerekli'})
+
+    if not PaketSiparisi.objects.filter(user=request.user, odeme_tamamlandi=True).exists():
+        return render(request, 'dersler/erisim_engellendi.html', {'sebep': 'paket_gerekli'})
+
     kurs = get_object_or_404(Kurs, pk=kurs_id)
-
-    # Orijinal hali: Herkese açık değilse ve kullanıcı izinli değilse engelle
-    if not kurs.herkese_acik and request.user not in kurs.izinli_kullanicilar.all():
-        return render(request, '403.html', status=403)
-
     return render(request, 'dersler/kurs_detay.html', {'kurs': kurs})
 
-
-@login_required
 def ders_detay(request, kurs_id, ders_id):
-    kurs = get_object_or_404(Kurs, pk=kurs_id)
+    """
+    Bir dersin detayını (videoyu) gösterir.
+    Sadece paket sahibi olan kullanıcılar erişebilir.
+    """
+    if not request.user.is_authenticated:
+        return render(request, 'dersler/erisim_engellendi.html', {'sebep': 'giris_gerekli'})
 
-    # Orijinal hali: Herkese açık değilse ve kullanıcı izinli değilse engelle
-    if not kurs.herkese_acik and request.user not in kurs.izinli_kullanicilar.all():
-        return render(request, '403.html', status=403)
+    if not PaketSiparisi.objects.filter(user=request.user, odeme_tamamlandi=True).exists():
+        return render(request, 'dersler/erisim_engellendi.html', {'sebep': 'paket_gerekli'})
 
     ders = get_object_or_404(Ders, kurs_id=kurs_id, pk=ders_id)
     return render(request, 'dersler/ders_detay.html', {'ders': ders})
