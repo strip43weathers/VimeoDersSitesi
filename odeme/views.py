@@ -5,6 +5,10 @@ from django.contrib.auth.decorators import login_required
 from .models import Sinav, SinavSiparisi, EgitimPaketi, PaketSiparisi
 from django.contrib import messages
 from .forms import SiparisForm, PaketSiparisForm
+from django.utils import timezone
+import datetime
+from kullanicilar.models import Profil
+from decimal import Decimal
 
 # --- MEVCUT SINAV VIEW'LARI ---
 
@@ -52,7 +56,32 @@ def satis_sozlesmesi(request):
 
 def paket_listesi(request):
     paketler = EgitimPaketi.objects.all()
-    return render(request, 'odeme/paket_listesi.html', {'paketler': paketler})
+    indirim_aktif = False
+    indirim_bitis_tarihi = None  # Bitiş tarihini tutmak için değişken
+
+    if request.user.is_authenticated:
+        try:
+            profil = Profil.objects.get(user=request.user)
+            kayit_suresi = timezone.now() - profil.kayit_tarihi
+
+            # Kayıt süresi 1 günden az ise indirim aktiftir
+            if kayit_suresi < datetime.timedelta(days=1):
+                indirim_aktif = True
+                # Bitiş tarihini hesapla: Kayıt tarihi + 1 gün
+                indirim_bitis_tarihi = profil.kayit_tarihi + datetime.timedelta(days=1)
+                for paket in paketler:
+                    paket.indirimli_fiyat = (paket.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
+        except Profil.DoesNotExist:
+            pass
+
+    context = {
+        'paketler': paketler,
+        'indirim_aktif': indirim_aktif,
+        # Bitiş tarihini JavaScript'in anlayacağı bir formatta gönderiyoruz (ISO 8601)
+        'indirim_bitis_tarihi': indirim_bitis_tarihi.isoformat() if indirim_bitis_tarihi else None
+    }
+    return render(request, 'odeme/paket_listesi.html', context)
+
 
 @login_required
 def paket_satin_al(request, paket_id):
@@ -62,22 +91,39 @@ def paket_satin_al(request, paket_id):
         messages.info(request, f'"{paket.baslik}" paketine zaten sahipsiniz.')
         return redirect('odeme:paket_kayit_mevcut') # <-- PAKET İÇİN YENİ YÖNLENDİRME
 
+    indirimli_fiyat = None
+    try:
+        profil = Profil.objects.get(user=request.user)
+        if timezone.now() - profil.kayit_tarihi < datetime.timedelta(days=1):
+            indirimli_fiyat = (paket.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
+    except Profil.DoesNotExist:
+        pass
+
     if request.method == 'POST':
         form = PaketSiparisForm(request.POST)
         if form.is_valid():
-            payment_is_successful = True
+            payment_is_successful = True  # Ödeme mantığınızı buraya entegre edin
             if payment_is_successful:
                 siparis = form.save(commit=False)
                 siparis.user = request.user
                 siparis.paket = paket
                 siparis.odeme_tamamlandi = True
+                # İleride, sipariş anındaki fiyatı da sipariş modeline kaydedebilirsiniz.
+                # siparis.fiyat = indirimli_fiyat if indirimli_fiyat is not None else paket.fiyat
                 siparis.save()
                 return redirect('odeme:paket_kayit_basarili') # <-- PAKET İÇİN YENİ YÖNLENDİRME
             else:
                 messages.error(request, 'Ödeme sırasında bir hata oluştu.')
     else:
         form = PaketSiparisForm()
-    return render(request, 'odeme/paket_satin_al.html', {'paket': paket, 'form': form})
+
+    context = {
+        'paket': paket,
+        'form': form,
+        'indirimli_fiyat': indirimli_fiyat
+    }
+    return render(request, 'odeme/paket_satin_al.html', context)
+
 
 # --- PAKETLER İÇİN YENİ EKLENEN VIEW'LAR ---
 @login_required

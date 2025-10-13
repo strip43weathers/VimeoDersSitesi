@@ -1,7 +1,9 @@
+# kullanicilar/views.py
 from django.shortcuts import render, redirect
 from .forms import KayitFormu
 from .models import Profil
 from django.contrib import messages
+from django.utils import timezone
 
 
 def kayit_view(request):
@@ -10,7 +12,7 @@ def kayit_view(request):
         if form.is_valid():
             user = form.save()
 
-            Profil.objects.create(user=user, onaylandi=True)
+            Profil.objects.create(user=user, onaylandi=True, kayit_tarihi=timezone.now())
             messages.success(request, 'Tebrikler başarıyla kaydoldunuz.')
 
             return redirect('login')
