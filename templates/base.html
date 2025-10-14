@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -102,7 +103,7 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="{% url 'anasayfa' %}">
-            <img src="/static/images/logo.png" alt="Romingo Academy Logo" style="height: 110px;" class="me-2">
+            <img src="{% static 'images/logo.png' %}" alt="Romingo Academy Logo" style="height: 110px;" class="me-2">
             <strong>Romingo Academy</strong>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -163,14 +164,14 @@
 <footer class="footer mt-auto bg-dark text-white pt-5 pb-4">
     <div class="container text-center text-md-start">
         <div class="row">
-            <div class="col-md-4 col-lg-4 col-xl-4 mx-auto mt-3">
+            <div class="col-md-6 col-lg-3 mx-auto mt-3">
                 <h5 class="text-uppercase mb-4 fw-bold text-warning">Romingo Academy</h5>
                 <p>
                     Romence öğrenme yolculuğunuzda size en modern ve etkili yöntemlerle rehberlik ediyoruz. A'dan Z'ye tüm seviyeler için hazırlanmış video derslerle dil öğrenimini keyifli hale getirin.
                 </p>
             </div>
 
-            <div class="col-md-4 col-lg-2 col-xl-2 mx-auto mt-3">
+            <div class="col-md-6 col-lg-3 mx-auto mt-3">
                 <h5 class="text-uppercase mb-4 fw-bold">Faydalı Linkler</h5>
                 <p><a href="{% url 'sayfalar:sayfa_detay' slug='hakkimizda' %}" class="text-white" style="text-decoration: none;">Hakkımızda</a></p>
                 <p><a href="{% url 'sayfalar:sayfa_detay' slug='sss' %}" class="text-white" style="text-decoration: none;">Sıkça Sorulan Sorular</a></p>
@@ -180,11 +181,18 @@
                 <p><a href="{% url 'odeme:teslimat_iade' %}" class="text-white" style="text-decoration: none;">Teslimat ve İade Şartları</a></p>
             </div>
 
-            <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mt-3">
+            <div class="col-md-6 col-lg-3 mx-auto mt-3">
                 <h5 class="text-uppercase mb-4 fw-bold">İletişim</h5>
                 <p><i class="bi bi-geo-alt-fill me-3"></i> İstanbul, Türkiye</p>
                 <p><i class="bi bi-envelope-fill me-3"></i> romingoacademy@outlook.com</p>
                 <p><i class="bi bi-telephone-fill me-3"></i> +90 551 459 67 80</p>
+            </div>
+
+            <div class="col-md-6 col-lg-3 mx-auto mt-3">
+                <h5 class="text-uppercase mb-4 fw-bold">Güvenli Ödeme</h5>
+                <p>
+                    <img src="{% static 'images/logo_band_colored@1X.png' %}" alt="Ödeme Yöntemleri" class="img-fluid">
+                </p>
             </div>
         </div>
 
