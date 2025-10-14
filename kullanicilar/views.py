@@ -11,8 +11,8 @@ def kayit_view(request):
         form = KayitFormu(request.POST)
         if form.is_valid():
             user = form.save()
-
-            Profil.objects.create(user=user, onaylandi=True, kayit_tarihi=timezone.now())
+            telefon = form.cleaned_data.get('telefon')
+            Profil.objects.create(user=user, telefon=telefon, onaylandi=True, kayit_tarihi=timezone.now())
             messages.success(request, 'Tebrikler başarıyla kaydoldunuz.')
 
             return redirect('login')

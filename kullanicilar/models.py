@@ -6,7 +6,7 @@ from django.utils import timezone
 class Profil(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-
+    telefon = models.CharField(max_length=15, blank=True, verbose_name="Telefon Numarası")
     onaylandi = models.BooleanField(default=True, verbose_name="Hesap Onaylandı")
     kayit_tarihi = models.DateTimeField(default=timezone.now)
 

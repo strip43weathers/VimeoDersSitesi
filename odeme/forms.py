@@ -6,6 +6,8 @@ from .models import SinavSiparisi, PaketSiparisi, KitapSiparisi
 
 # Mevcut Sınav Sipariş Formu (eğer kullanıyorsanız)
 class SiparisForm(forms.ModelForm):
+    sozlesme_onay = forms.BooleanField(required=True, label='')
+
     class Meta:
         model = SinavSiparisi
         fields = ['ad', 'soyad', 'email', 'telefon', 'adres']

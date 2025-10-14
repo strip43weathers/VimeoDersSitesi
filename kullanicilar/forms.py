@@ -1,3 +1,4 @@
+# kullanicilar/forms.py
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm
 from django.contrib.auth.models import User
@@ -6,6 +7,7 @@ from django.core.exceptions import ValidationError
 
 class KayitFormu(UserCreationForm):
     email = forms.EmailField(required=True, help_text="Lütfen geçerli bir e-posta adresi girin.")
+    telefon = forms.CharField(max_length=15, required=False, label="Telefon Numarası")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -18,7 +20,7 @@ class KayitFormu(UserCreationForm):
 
     class Meta(UserCreationForm.Meta):
         model = User
-        fields = UserCreationForm.Meta.fields + ('first_name', 'last_name', 'email')
+        fields = UserCreationForm.Meta.fields + ('first_name', 'last_name', 'email', 'telefon')
 
 
 class CustomAuthenticationForm(AuthenticationForm):

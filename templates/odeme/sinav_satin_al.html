@@ -21,7 +21,38 @@
                     <h5 class="fw-bold mt-5 mb-3">Kayıt Bilgileri</h5>
                     <form method="post" class="needs-validation" novalidate>
                         {% csrf_token %}
-                        {{ form.as_p }}
+                        
+                        {{ form.non_field_errors }}
+                        
+                        {% for field in form.visible_fields %}
+                            {% if field.name != 'sozlesme_onay' %}
+                                <div class="mb-3">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ error }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+
+                        <div class="form-check mt-4">
+                            {{ form.sozlesme_onay }}
+                            <label class="form-check-label" for="{{ form.sozlesme_onay.id_for_label }}">
+                                <a href="{% url 'odeme:satis_sozlesmesi' %}" target="_blank">Satış sözleşmesini</a> okudum ve kabul ediyorum.
+                            </label>
+                            {% for error in form.sozlesme_onay.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
                         <div class="d-grid mt-4">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="fas fa-check-circle me-2"></i>Kaydı Tamamla ve Öde

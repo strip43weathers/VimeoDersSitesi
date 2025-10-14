@@ -37,7 +37,7 @@
         </div>
         <div class="col-md-6 d-flex flex-column">
             <h1 class="display-5 fw-bold">{{ kitap.baslik }}</h1>
-            <p class="lead text-muted">{{ kitap.aciklama }}</p>
+            <div class="lead text-muted">{{ kitap.aciklama|linebreaks }}</div>
             <hr>
             <div class="mt-auto">
                 <div class="d-flex align-items-center justify-content-between">
