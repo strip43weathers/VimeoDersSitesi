@@ -10,6 +10,7 @@
         <p>Sitemize kaydolarak ve bir eğitim paketi satın alarak sadece üyelere özel olarak hazırlanan daha fazla oyuna erişebilirsiniz.</p>
         <hr>
         <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary">Giriş Yap</a>
+        <a href="{% url 'kullanicilar:kayit' %}" class="btn btn-success btn-lg">Hemen Kayıt Ol</a>
     </div>
     {% elif not kullanici_paket_sahibi_mi %}
     <div class="alert alert-warning my-4" role="alert">
