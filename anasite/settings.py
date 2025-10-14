@@ -41,6 +41,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'anasite.middleware.BasicAuthMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -115,7 +116,6 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
-
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 31536000
@@ -127,3 +127,11 @@ if not DEBUG:
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+# anasite/settings.py dosyasının en altına ekleyin
+
+# --- Site Geneli Şifre Koruması Ayarları ---
+BASIC_AUTH_ENABLED = config('BASIC_AUTH_ENABLED', default=False, cast=bool)
+BASIC_AUTH_USER = config('BASIC_AUTH_USER', default='admin')
+BASIC_AUTH_PASSWORD = config('BASIC_AUTH_PASSWORD', default='secret')
