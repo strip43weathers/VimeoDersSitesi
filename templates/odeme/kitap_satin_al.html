@@ -26,7 +26,50 @@
                     <h5 class="fw-bold mt-5 mb-3">Teslimat Bilgileri</h5>
                     <form method="post" class="needs-validation" novalidate>
                         {% csrf_token %}
-                        {{ form.as_p }}
+                        
+                        {{ form.non_field_errors }}
+
+                        {% for field in form.visible_fields %}
+                            {% if field.name != 'sozlesme_onay' and field.name != 'teslimat_ve_iade_onay' %}
+                                <div class="mb-3">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ error }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+
+                        <div class="form-check mt-4">
+                            {{ form.sozlesme_onay }}
+                            <label class="form-check-label" for="{{ form.sozlesme_onay.id_for_label }}">
+                                <a href="{% url 'odeme:satis_sozlesmesi' %}" target="_blank">Satış sözleşmesini</a> okudum ve kabul ediyorum.
+                            </label>
+                            {% for error in form.sozlesme_onay.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-check mt-2">
+                            {{ form.teslimat_ve_iade_onay }}
+                            <label class="form-check-label" for="{{ form.teslimat_ve_iade_onay.id_for_label }}">
+                                <a href="{% url 'odeme:teslimat_iade' %}" target="_blank">Teslimat ve iade şartlarını</a> okudum ve kabul ediyorum.
+                            </label>
+                            {% for error in form.teslimat_ve_iade_onay.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
                         <div class="d-grid mt-4">
                             <button type="submit" class="btn btn-success btn-lg">
                                 <i class="fas fa-truck me-2"></i>Siparişi Tamamla
