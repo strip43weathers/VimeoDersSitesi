@@ -6,14 +6,25 @@ from odeme.models import PaketSiparisi
 from blog.models import BlogYazisi
 import datetime
 from django.utils import timezone
+from sayfalar.models import RehberVideo
 
 
 def anasayfa_view(request):
     """
-    Ana sayfayı render eder. Blog yazılarından son 3 tanesini de context'e ekler.
+    Ana sayfayı render eder. Blog yazılarından son 3 tanesini ve
+    ana sayfa için aktif olan rehber videosunu context'e ekler.
     """
     recent_posts = BlogYazisi.objects.order_by('-olusturulma_tarihi')[:3]
-    return render(request, 'anasayfa.html', {'recent_posts': recent_posts})
+
+    # Ana sayfa için aktif olan ilk rehber videoyu bul
+    rehber_video = RehberVideo.objects.filter(sayfa='anasayfa', aktif=True).first()
+
+    context = {
+        'recent_posts': recent_posts,
+        'rehber_video': rehber_video,  # Videoyu context'e ekle
+    }
+
+    return render(request, 'anasayfa.html', context)
 
 
 def kurs_listesi(request):
