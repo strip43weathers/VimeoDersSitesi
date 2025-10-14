@@ -1,33 +1,44 @@
 {% extends "base.html" %}
+
 {% block content %}
 <div class="container my-5">
     <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-light py-4">
-                    <h2 class="text-center mb-0">Mesafeli Satış Sözleşmesi</h2>
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="mb-0">Mesafeli Satış Sözleşmesi</h2>
                 </div>
-                <div class="card-body p-5">
-                    <p class="text-muted">Lütfen hizmetlerimizi veya ürünlerimizi satın almadan önce aşağıdaki sözleşmeyi dikkatlice okuyunuz.</p>
-                    <hr>
+                <div class="card-body p-4 p-md-5">
+                    <p><strong>MADDE 1: TARAFLAR</strong></p>
+                    <p><strong>SATICI:</strong></p>
+                    <p>Unvanı: [Şirket Unvanınız]</p>
+                    <p>Adresi: [Şirket Adresiniz]</p>
+                    <p>E-posta: romingoacademy@outlook.com</p>
 
-                    <h4 class="mt-4">MADDE 1: TARAFLAR</h4>
-                    <p><strong>1.1. SATICI:</strong> [Şirket Adınız], Adres: [Şirket Adresiniz], E-posta: [E-posta Adresiniz]</p>
-                    <p><strong>1.2. ALICI:</strong> Hizmeti/ürünü satın alan kişi.</p>
+                    <p><strong>ALICI:</strong></p>
+                    <p>Adı Soyadı/Unvanı: {{ siparis.ad }} {{ siparis.soyad }}</p>
+                    <p>Adresi: {{ siparis.adres }}</p>
+                    <p>Telefon: {{ siparis.telefon }}</p>
+                    <p>E-posta: {{ siparis.email }}</p>
 
-                    <h4 class="mt-4">MADDE 2: SÖZLEŞMENİN KONUSU</h4>
-                    <p>İşbu sözleşmenin konusu, ALICI'nın SATICI'ya ait internet sitesinden elektronik ortamda siparişini yaptığı aşağıda nitelikleri ve satış fiyatı belirtilen ürünün/hizmetin satışı ve teslimi ile ilgili olarak 6502 sayılı Tüketicinin Korunması Hakkındaki Kanun ve Mesafeli Sözleşmeler Yönetmeliği hükümleri gereğince tarafların hak ve yükümlülüklerinin saptanmasıdır.</p>
+                    <p><strong>MADDE 2: KONU</strong></p>
+                    <p>İşbu sözleşmenin konusu, ALICI'nın SATICI'ya ait www.romingoakademi.com internet sitesinden elektronik ortamda siparişini yaptığı aşağıda nitelikleri ve satış fiyatı belirtilen ürünün/hizmetin satışı ve teslimi ile ilgili olarak 6502 sayılı Tüketicinin Korunması Hakkındaki Kanun ve Mesafeli Sözleşmeler Yönetmeliği hükümleri gereğince tarafların hak ve yükümlülüklerinin saptanmasıdır.</p>
 
-                    <h4 class="mt-4">MADDE 3: CAYMA HAKKI</h4>
-                    <p>ALICI, sözleşme konusu hizmetin/ürünün kendisine veya gösterdiği adresteki kişi/kuruluşa tesliminden itibaren 14 (ondört) gün içinde hiçbir gerekçe göstermeksizin cayma hakkına sahiptir...</p>
+                    <p><strong>MADDE 3: SÖZLEŞME KONUSU ÜRÜN/HİZMET BİLGİLERİ</strong></p>
+                    <p>Ürünün/Hizmetin türü, miktarı, marka/modeli, rengi, adedi, satış bedeli, ödeme şekli, siparişin sonlandığı andaki bilgilerden oluşmaktadır.</p>
 
-                    <p><i>(Sözleşmenizin devamını buraya ekleyebilirsiniz.)</i></p>
+                    <p><strong>MADDE 4: GENEL HÜKÜMLER</strong></p>
+                    <p>4.1. ALICI, www.romingoakademi.com internet sitesinde sözleşme konusu ürünün temel nitelikleri, satış fiyatı ve ödeme şekli ile teslimata ilişkin ön bilgileri okuyup bilgi sahibi olduğunu ve elektronik ortamda gerekli teyidi verdiğini beyan eder.</p>
+                    <p>4.2. Sözleşme konusu ürün/hizmet, yasal 30 günlük süreyi aşmamak koşulu ile her bir ürün için ALICI'nın yerleşim yerinin uzaklığına bağlı olarak internet sitesinde ön bilgiler içinde açıklanan süre içinde ALICI veya gösterdiği adresteki kişi/kuruluşa teslim edilir. Sunulan hizmet dijital içerik ise, satın alma sonrası ALICI'nın hesabına tanımlanır ve/veya e-posta ile erişim bilgileri gönderilir.</p>
+                    <p>4.3. SATICI, sözleşme konusu ürünün sağlam, eksiksiz, siparişte belirtilen niteliklere uygun teslim edilmesinden sorumludur.</p>
 
-                    <div class="text-end mt-5">
-                        <button onclick="window.history.back();" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left me-2"></i>Geri Dön
-                        </button>
-                    </div>
+                    <p><strong>MADDE 5: CAYMA HAKKI</strong></p>
+                    <p>ALICI, sözleşme konusu ürünün/hizmetin kendisine veya gösterdiği adresteki kişi/kuruluşa tesliminden itibaren 14 (ondört) gün içinde hiçbir gerekçe göstermeksizin cayma hakkına sahiptir. Ancak, Mesafeli Sözleşmeler Yönetmeliği'nin "Cayma Hakkının İstisnaları" başlıklı maddesi uyarınca, elektronik ortamda anında ifa edilen hizmetler (sınav giriş ücreti) veya tüketiciye anında teslim edilen gayrimaddi mallara ilişkin sözleşmelerde cayma hakkı kullanılamaz. Sitemizde satılan sınava giriş hizmetleri bu kapsama girdiğinden cayma hakkı kullanılamaz ve iade yapılamaz.</p>
+
+                    <p><strong>MADDE 6: YETKİLİ MAHKEME</strong></p>
+                    <p>İşbu sözleşmenin uygulanmasında, Sanayi ve Ticaret Bakanlığınca ilan edilen değere kadar Tüketici Hakem Heyetleri ile ALICI'nın veya SATICI'nın yerleşim yerindeki Tüketici Mahkemeleri yetkilidir.</p>
+
+                    <p>Siparişin gerçekleşmesi durumunda ALICI işbu sözleşmenin tüm koşullarını kabul etmiş sayılır.</p>
                 </div>
             </div>
         </div>

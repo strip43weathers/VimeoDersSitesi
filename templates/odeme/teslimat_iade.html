@@ -1,31 +1,35 @@
 {% extends "base.html" %}
+
 {% block content %}
 <div class="container my-5">
     <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-light py-4">
-                    <h2 class="text-center mb-0">Teslimat ve İade Şartları</h2>
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="mb-0">Teslimat ve İade Şartları</h2>
                 </div>
-                <div class="card-body p-5">
-                    <h4 class="mt-4">Teslimat Şartları</h4>
-                    <p>
-                        Buraya ürünlerinizin veya hizmetlerinizin teslimat süreçleriyle ilgili
-                        bilgileri yazın. (Örn: Kargo süresi, dijital ürün teslimatı vb.)
-                    </p>
-                    <hr>
+                <div class="card-body p-4 p-md-5">
+                    <h3 class="card-title fw-bold mb-4">Teslimat Şartları</h3>
+                    
+                    <h5 class="fw-bold mt-4">Dijital Ürünler (Sınava Giriş, Eğitim Paketleri)</h5>
+                    <p>Satın alma işleminiz onaylandıktan hemen sonra, hizmetinize (sınav, eğitim paketi vb.) ait erişim bilgileri veya linkleri, sipariş sırasında belirttiğiniz telefon numaranıza veya e-posta adresinize en yakın zamanda gönderilir. E-posta'nın gelen kutunuza ulaşması birkaç saat sürebilir. Eğer e-postayı göremezseniz, lütfen "Spam" veya "Gereksiz" klasörlerinizi kontrol ediniz.</p>
 
-                    <h4 class="mt-4">İade Şartları</h4>
-                    <p>
-                        Buraya iade, cayma hakkı ve geri ödeme politikalarınızla ilgili
-                        bilgileri yazın.
-                    </p>
+                    <h5 class="fw-bold mt-4">Fiziksel Ürünler (Kitap vb.)</h5>
+                    <p>Siparişiniz, sipariş tarihini takip eden 3 (üç) iş günü içerisinde kargoya verilir. Kargo takip numaranız, ürün kargoya verildiğinde e-posta adresinize gönderilecektir.</p>
+                    <p>Teslimat süresi, kargo firmasının yoğunluğuna ve teslimat adresinize bağlı olarak değişiklik gösterebilir. Resmi tatil günlerinde ve hafta sonlarında kargo teslimatı yapılmamaktadır.</p>
 
-                    <div class="text-end mt-5">
-                        <button onclick="window.history.back();" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left me-2"></i>Geri Dön
-                        </button>
-                    </div>
+                    <hr class="my-5">
+
+                    <h3 class="card-title fw-bold mb-4">İade Şartları ve Cayma Hakkı</h3>
+
+                    <h5 class="fw-bold mt-4">Dijital Ürünler (Sınav Sertifikası, Eğitim Paketleri)</h5>
+                    <p>Mesafeli Sözleşmeler Yönetmeliği'nin 15. Maddesi'nin "ğ" bendi uyarınca, "Elektronik ortamda anında ifa edilen hizmetler veya tüketiciye anında teslim edilen gayrimaddi mallara ilişkin sözleşmelerde" cayma hakkı kullanılamaz.</p>
+                    <p>Bu kapsamda, satın almış olduğunuz sınav giriş hizmeti, satın alma işlemi tamamlandığı anda size teslim edilmiş sayıldığından, bu ürünlerin iadesi ve iptali mümkün değildir.</p>
+
+                    <h5 class="fw-bold mt-4">Fiziksel Ürünler (Kitap vb.)</h5>
+                    <p>Satın aldığınız fiziksel ürünü, teslimat tarihinden itibaren 14 (ondört) gün içerisinde, herhangi bir gerekçe göstermeksizin ve cezai şart ödemeksizin iade edebilirsiniz.</p>
+                    <p>İade işleminin gerçekleştirilebilmesi için ürünün kullanılmamış, zarar görmemiş ve orijinal ambalajında olması gerekmektedir. İade talebiniz için lütfen +90 551 459 67 80 telefon numarasından veya romingoacademy@outlook.com adresinden bizimle iletişime geçerek iade sürecini başlatınız.</p>
+                    <p>İade kargo ücreti alıcıya aittir. Ürün firmamıza ulaştıktan ve gerekli kontroller yapıldıktan sonra, ürün bedeli 10 iş günü içerisinde ödeme yaptığınız yöntemle iade edilecektir.</p>
                 </div>
             </div>
         </div>
