@@ -4,9 +4,9 @@ from django.shortcuts import render, get_object_or_404
 from .models import Kurs, Ders
 from odeme.models import PaketSiparisi
 from blog.models import BlogYazisi
-from kullanicilar.models import Profil  # Profil modelini import ediyoruz
 import datetime
 from django.utils import timezone
+
 
 def anasayfa_view(request):
     """
@@ -14,6 +14,7 @@ def anasayfa_view(request):
     """
     recent_posts = BlogYazisi.objects.order_by('-olusturulma_tarihi')[:3]
     return render(request, 'anasayfa.html', {'recent_posts': recent_posts})
+
 
 def kurs_listesi(request):
     """
@@ -30,6 +31,7 @@ def kurs_listesi(request):
     }
     return render(request, 'dersler/kurs_listesi.html', context)
 
+
 def kurs_detay(request, kurs_id):
     """
     Bir kursun detaylarını ve derslerini gösterir.
@@ -38,24 +40,30 @@ def kurs_detay(request, kurs_id):
     if not request.user.is_authenticated:
         return render(request, 'dersler/erisim_engellendi.html', {'sebep': 'giris_gerekli'})
 
-    # Yeni sistemin devreye girdiği tarihi buraya yazın.
-    # Örneğin: 1 Ekim 2025
-    eski_kullanici_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 15))
+    # --- KONTROL MEKANİZMASI ---
 
-    # Kullanıcının profilini ve kayıt tarihini kontrol et
-    try:
-        if request.user.profil.kayit_tarihi < eski_kullanici_tarihi:
-            kurs = get_object_or_404(Kurs, pk=kurs_id)
-            return render(request, 'dersler/kurs_detay.html', {'kurs': kurs})
-    except Profil.DoesNotExist:
-        # Profili olmayan kullanıcılar için normal akışa devam et
-        pass
+    # 1. Kullanıcının ücretli bir paketi var mı diye kontrol et.
+    paket_sahibi = PaketSiparisi.objects.filter(user=request.user, odeme_tamamlandi=True).exists()
 
-    if not PaketSiparisi.objects.filter(user=request.user, odeme_tamamlandi=True).exists():
+    # 2. Eğer paketi yoksa, eski bir kullanıcı mı diye kontrol et.
+    is_eski_kullanici = False
+    if not paket_sahibi:
+        # !!! DİKKAT: BU TARİHİ KENDİ SİSTEMİNİZİN GEÇİŞ TARİHİYLE DEĞİŞTİRİN !!!
+        # Örneğin, sistem 13 Ekim 2025'te devreye girdiyse: datetime(2025, 10, 13)
+        gecis_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 15))
+
+        # Kullanıcının asıl kayıt tarihine bakıyoruz.
+        if request.user.date_joined < gecis_tarihi:
+            is_eski_kullanici = True
+
+    # 3. Eğer kullanıcı ne paket sahibi ne de eski kullanıcı ise, erişimi engelle.
+    if not paket_sahibi and not is_eski_kullanici:
         return render(request, 'dersler/erisim_engellendi.html', {'sebep': 'paket_gerekli'})
 
+    # Eğer buraya kadar geldiyse, kullanıcı yetkilidir.
     kurs = get_object_or_404(Kurs, pk=kurs_id)
     return render(request, 'dersler/kurs_detay.html', {'kurs': kurs})
+
 
 def ders_detay(request, kurs_id, ders_id):
     """
@@ -65,19 +73,19 @@ def ders_detay(request, kurs_id, ders_id):
     if not request.user.is_authenticated:
         return render(request, 'dersler/erisim_engellendi.html', {'sebep': 'giris_gerekli'})
 
-    # Yeni sistemin devreye girdiği tarihi buraya yazın.
-    eski_kullanici_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 15))
+    # --- KONTROL MEKANİZMASI (Yukarıdakinin aynısı) ---
+    paket_sahibi = PaketSiparisi.objects.filter(user=request.user, odeme_tamamlandi=True).exists()
 
-    # Kullanıcının profilini ve kayıt tarihini kontrol et
-    try:
-        if request.user.profil.kayit_tarihi < eski_kullanici_tarihi:
-            ders = get_object_or_404(Ders, kurs_id=kurs_id, pk=ders_id)
-            return render(request, 'dersler/ders_detay.html', {'ders': ders})
-    except Profil.DoesNotExist:
-        pass
+    is_eski_kullanici = False
+    if not paket_sahibi:
+        # !!! DİKKAT: BU TARİHİ KENDİ SİSTEMİNİZİN GEÇİŞ TARİHİYLE DEĞİŞTİRİN !!!
+        gecis_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 15))
+        if request.user.date_joined < gecis_tarihi:
+            is_eski_kullanici = True
 
-    if not PaketSiparisi.objects.filter(user=request.user, odeme_tamamlandi=True).exists():
+    if not paket_sahibi and not is_eski_kullanici:
         return render(request, 'dersler/erisim_engellendi.html', {'sebep': 'paket_gerekli'})
 
+    # Kullanıcı yetkiliyse ders detayını göster.
     ders = get_object_or_404(Ders, kurs_id=kurs_id, pk=ders_id)
     return render(request, 'dersler/ders_detay.html', {'ders': ders})
