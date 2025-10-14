@@ -14,6 +14,7 @@ urlpatterns = [
 
     # --- Genel URL'ler ---
     path('satis-sozlesmesi/', views.satis_sozlesmesi, name='satis_sozlesmesi'),
+    path('teslimat-ve-iade-sartlari/', views.teslimat_iade_sartlari, name='teslimat_iade'),
 
     # --- Eğitim Paketi URL'leri ---
     path('paket/<int:paket_id>/', views.paket_detay_view, name='paket_detay'),

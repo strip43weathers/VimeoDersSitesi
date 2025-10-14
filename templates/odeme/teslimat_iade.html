@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-4">
+                    <h2 class="text-center mb-0">Teslimat ve İade Şartları</h2>
+                </div>
+                <div class="card-body p-5">
+                    <h4 class="mt-4">Teslimat Şartları</h4>
+                    <p>
+                        Buraya ürünlerinizin veya hizmetlerinizin teslimat süreçleriyle ilgili
+                        bilgileri yazın. (Örn: Kargo süresi, dijital ürün teslimatı vb.)
+                    </p>
+                    <hr>
+
+                    <h4 class="mt-4">İade Şartları</h4>
+                    <p>
+                        Buraya iade, cayma hakkı ve geri ödeme politikalarınızla ilgili
+                        bilgileri yazın.
+                    </p>
+
+                    <div class="text-end mt-5">
+                        <button onclick="window.history.back();" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Geri Dön
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

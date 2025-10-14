@@ -274,3 +274,7 @@ def paket_detay_view(request, paket_id):
         'indirimli_fiyat': indirimli_fiyat
     }
     return render(request, 'odeme/paket_detay.html', context)
+
+
+def teslimat_iade_sartlari(request):
+    return render(request, 'odeme/teslimat_iade.html')
