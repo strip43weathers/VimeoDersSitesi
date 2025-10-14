@@ -215,3 +215,21 @@ def kitap_kayit_basarili(request):
 @login_required
 def kitap_kayit_mevcut(request):
     return render(request, 'odeme/kitap_kayit_mevcut.html')
+
+
+def kitap_detay_view(request, kitap_id):
+    # İlgili ID'ye sahip kitabı veritabanından bulur. Bulamazsa 404 hatası verir.
+    kitap = get_object_or_404(Kitap, id=kitap_id)
+    context = {
+        'kitap': kitap
+    }
+    return render(request, 'odeme/kitap_detay.html', context)
+
+
+def paket_detay_view(request, paket_id):
+    # İlgili ID'ye sahip eğitim paketini bulur. Bulamazsa 404 hatası verir.
+    paket = get_object_or_404(EgitimPaketi, id=paket_id)
+    context = {
+        'paket': paket
+    }
+    return render(request, 'odeme/paket_detay.html', context)

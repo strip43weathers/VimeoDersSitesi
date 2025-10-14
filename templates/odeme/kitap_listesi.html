@@ -8,7 +8,7 @@
         <p class="lead text-muted">Bilgiye giden yolda size eşlik edecek kaynaklar. Keşfedin ve okumaya başlayın!</p>
     </div>
 
-    {# --- İNDİRİM BİLGİLENDİRME ALANI --- #}
+    {# --- İNDİRİM BİLGİLENDİRME ALANI (Orijinal haliyle korunuyor) --- #}
     {% if user.is_authenticated %}
         {% if indirim_aktif %}
         <div class="alert alert-success d-flex align-items-center shadow-sm" role="alert">
@@ -35,33 +35,40 @@
     <div class="row g-4 mt-4">
         {% for kitap in kitaplar %}
         <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
-            <div class="card h-100 shadow-sm border-0 rounded-3 text-center">
-                
-                {# --- YENİ EKLENEN KİTAP FOTOĞRAFI BÖLÜMÜ --- #}
-                {% if kitap.fotograf %}
-                    <img src="{{ kitap.fotograf.url }}" class="card-img-top" alt="{{ kitap.baslik }} Kapak Resmi" style="height: 200px; object-fit: cover;">
-                {% else %}
-                    {# Varsayılan kapak resmi gösterilir #}
-                    <img src="{% static 'images/default_book_cover.png' %}" class="card-img-top" alt="Varsayılan Kapak" style="height: 200px; object-fit: cover;">
-                {% endif %}
-                {# --- KİTAP FOTOĞRAFI BÖLÜMÜ SONU --- #}
-                
-                <div class="card-body d-flex flex-column">
-                    <h4 class="card-title fw-bold text-primary">{{ kitap.baslik }}</h4>
-                    <p class="card-text text-muted flex-grow-1">{{ kitap.aciklama|truncatewords:20 }}</p>
-                    <div class="mt-auto">
-                        {% if kitap.indirimli_fiyat %}
-                            <p class="text-muted mb-1"><del>{{ kitap.fiyat }} EURO</del></p>
-                            <h3 class="fw-bold text-success">{{ kitap.indirimli_fiyat }} EURO</h3>
-                        {% else %}
-                            <h3 class="fw-bold text-dark">{{ kitap.fiyat }} EURO</h3>
-                        {% endif %}
-                        <a href="{% url 'odeme:kitap_satin_al' kitap.id %}" class="btn btn-primary w-100 mt-3">
-                            <i class="fas fa-book-open me-2"></i>Satın Al
-                        </a>
+            
+            {# --- KARTIN TAMAMINI LİNKE DÖNÜŞTÜRME --- #}
+            <a href="{% url 'odeme:kitap_detay' kitap.id %}" class="card-link-wrapper text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 rounded-3 text-center">
+                    
+                    {# --- KİTAP FOTOĞRAFI --- #}
+                    {% if kitap.fotograf %}
+                        <img src="{{ kitap.fotograf.url }}" class="card-img-top" alt="{{ kitap.baslik }} Kapak Resmi" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                        <img src="{% static 'images/default_book_cover.png' %}" class="card-img-top" alt="Varsayılan Kapak" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                    {# --- KİTAP FOTOĞRAFI SONU --- #}
+                    
+                    <div class="card-body d-flex flex-column">
+                        <h4 class="card-title fw-bold text-primary">{{ kitap.baslik }}</h4>
+                        {# Açıklamanın kısa hali burada gösteriliyor #}
+                        <p class="card-text text-muted flex-grow-1">{{ kitap.aciklama|truncatewords:20 }}</p>
+                        <div class="mt-auto">
+                            {% if kitap.indirimli_fiyat %}
+                                <p class="text-muted mb-1"><del>{{ kitap.fiyat }} EURO</del></p>
+                                <h3 class="fw-bold text-success">{{ kitap.indirimli_fiyat }} EURO</h3>
+                            {% else %}
+                                <h3 class="fw-bold text-dark">{{ kitap.fiyat }} EURO</h3>
+                            {% endif %}
+                            {# "Satın Al" butonu "Detayları Gör" olarak değiştirildi #}
+                            <span class="btn btn-primary w-100 mt-3">
+                                <i class="fas fa-info-circle me-2"></i>Detayları Gör
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </a>
+            {# --- LİNK BİTİŞİ --- #}
+            
         </div>
         {% empty %}
         <div class="col-12">
@@ -73,7 +80,23 @@
     </div>
 </div>
 
-{# --- JAVASCRIPT KISMI --- #}
+{# --- TIKLANABİLİR KART İÇİN CSS --- #}
+<style>
+    .card-link-wrapper {
+        color: inherit; /* Kartın içindeki metin renklerini bozmamak için */
+        display: block; /* Tüm alanı kaplaması için */
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .card-link-wrapper:hover {
+        transform: translateY(-5px); /* Hafifçe yukarı kalkma efekti */
+        text-decoration: none; /* Link alt çizgisini kaldırma */
+    }
+    .card-link-wrapper:hover .card {
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; /* Vurguyu artırmak için gölgeyi büyütme */
+    }
+</style>
+
+{# --- JAVASCRIPT KISMI (Orijinal haliyle korunuyor) --- #}
 {% if indirim_aktif %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
