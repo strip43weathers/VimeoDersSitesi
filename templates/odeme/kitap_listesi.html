@@ -54,10 +54,10 @@
                         <p class="card-text text-muted flex-grow-1">{{ kitap.aciklama|truncatewords:20 }}</p>
                         <div class="mt-auto">
                             {% if kitap.indirimli_fiyat %}
-                                <p class="text-muted mb-1"><del>{{ kitap.fiyat }} EURO</del></p>
-                                <h3 class="fw-bold text-success">{{ kitap.indirimli_fiyat }} EURO</h3>
+                                <p class="text-muted mb-1"><del>{{ kitap.fiyat }} TL</del></p>
+                                <h3 class="fw-bold text-success">{{ kitap.indirimli_fiyat }} TL</h3>
                             {% else %}
-                                <h3 class="fw-bold text-dark">{{ kitap.fiyat }} EURO</h3>
+                                <h3 class="fw-bold text-dark">{{ kitap.fiyat }} TL</h3>
                             {% endif %}
                             {# "Satın Al" butonu "Detayları Gör" olarak değiştirildi #}
                             <span class="btn btn-primary w-100 mt-3">

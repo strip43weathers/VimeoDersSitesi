@@ -30,7 +30,10 @@ class SinavSiparisi(models.Model):
 class EgitimPaketi(models.Model):
     baslik = models.CharField(max_length=200, verbose_name="Paket Başlığı")
     aciklama = models.TextField(verbose_name="Açıklama", blank=True, null=True)
-    fiyat = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Fiyat (EURO)")
+    fiyat = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Fiyat (TL)")
+    # Yeni eklenen alan
+    fotograf = models.ImageField(upload_to='egitim_paketi_kapaklari/', blank=True, null=True, verbose_name="Paket Kapağı")
+
 
     def __str__(self):
         return self.baslik
@@ -53,7 +56,7 @@ class PaketSiparisi(models.Model):
 class Kitap(models.Model):
     baslik = models.CharField(max_length=200, verbose_name="Kitap Başlığı")
     aciklama = models.TextField(verbose_name="Açıklama", blank=True, null=True)
-    fiyat = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Fiyat (EURO)")
+    fiyat = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Fiyat (TL)")
     # Yeni eklenen alan
     fotograf = models.ImageField(upload_to='kitap_kapaklari/', blank=True, null=True, verbose_name="Kitap Kapağı")
 

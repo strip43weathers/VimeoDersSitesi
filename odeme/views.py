@@ -2,8 +2,8 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Sinav, SinavSiparisi, EgitimPaketi, PaketSiparisi, Kitap, KitapSiparisi # Yeni modelleri ekleyin
-from .forms import SiparisForm, PaketSiparisForm, KitapSiparisForm # Yeni formu ekleyin
+from .models import Sinav, SinavSiparisi, EgitimPaketi, PaketSiparisi, Kitap, KitapSiparisi
+from .forms import SiparisForm, PaketSiparisForm, KitapSiparisForm
 from django.contrib import messages
 from django.utils import timezone
 import datetime
@@ -57,27 +57,29 @@ def satis_sozlesmesi(request):
 def paket_listesi(request):
     paketler = EgitimPaketi.objects.all()
     indirim_aktif = False
-    indirim_bitis_tarihi = None  # Bitiş tarihini tutmak için değişken
+    indirim_bitis_tarihi = None
+    indirim_uygula = False
 
     if request.user.is_authenticated:
         try:
             profil = Profil.objects.get(user=request.user)
             kayit_suresi = timezone.now() - profil.kayit_tarihi
-
-            # Kayıt süresi 1 günden az ise indirim aktiftir
             if kayit_suresi < datetime.timedelta(days=1):
                 indirim_aktif = True
-                # Bitiş tarihini hesapla: Kayıt tarihi + 1 gün
+                indirim_uygula = True
                 indirim_bitis_tarihi = profil.kayit_tarihi + datetime.timedelta(days=1)
-                for paket in paketler:
-                    paket.indirimli_fiyat = (paket.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
         except Profil.DoesNotExist:
             pass
+    else:  # Kullanıcı giriş yapmamışsa indirimi uygula
+        indirim_uygula = True
+
+    if indirim_uygula:
+        for paket in paketler:
+            paket.indirimli_fiyat = (paket.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
 
     context = {
         'paketler': paketler,
         'indirim_aktif': indirim_aktif,
-        # Bitiş tarihini JavaScript'in anlayacağı bir formatta gönderiyoruz (ISO 8601)
         'indirim_bitis_tarihi': indirim_bitis_tarihi.isoformat() if indirim_bitis_tarihi else None
     }
     return render(request, 'odeme/paket_listesi.html', context)
@@ -89,7 +91,7 @@ def paket_satin_al(request, paket_id):
     mevcut_siparis = PaketSiparisi.objects.filter(user=request.user, paket=paket, odeme_tamamlandi=True).first()
     if mevcut_siparis:
         messages.info(request, f'"{paket.baslik}" paketine zaten sahipsiniz.')
-        return redirect('odeme:paket_kayit_mevcut') # <-- PAKET İÇİN YENİ YÖNLENDİRME
+        return redirect('odeme:paket_kayit_mevcut')
 
     indirimli_fiyat = None
     try:
@@ -102,16 +104,14 @@ def paket_satin_al(request, paket_id):
     if request.method == 'POST':
         form = PaketSiparisForm(request.POST)
         if form.is_valid():
-            payment_is_successful = True  # Ödeme mantığınızı buraya entegre edin
+            payment_is_successful = True
             if payment_is_successful:
                 siparis = form.save(commit=False)
                 siparis.user = request.user
                 siparis.paket = paket
                 siparis.odeme_tamamlandi = True
-                # İleride, sipariş anındaki fiyatı da sipariş modeline kaydedebilirsiniz.
-                # siparis.fiyat = indirimli_fiyat if indirimli_fiyat is not None else paket.fiyat
                 siparis.save()
-                return redirect('odeme:paket_kayit_basarili') # <-- PAKET İÇİN YENİ YÖNLENDİRME
+                return redirect('odeme:paket_kayit_basarili')
             else:
                 messages.error(request, 'Ödeme sırasında bir hata oluştu.')
     else:
@@ -125,7 +125,6 @@ def paket_satin_al(request, paket_id):
     return render(request, 'odeme/paket_satin_al.html', context)
 
 
-# --- PAKETLER İÇİN YENİ EKLENEN VIEW'LAR ---
 @login_required
 def paket_kayit_basarili(request):
     return render(request, 'odeme/paket_kayit_basarili.html')
@@ -140,20 +139,24 @@ def kitap_listesi(request):
     kitaplar = Kitap.objects.all()
     indirim_aktif = False
     indirim_bitis_tarihi = None
+    indirim_uygula = False
 
     if request.user.is_authenticated:
         try:
             profil = Profil.objects.get(user=request.user)
             kayit_suresi = timezone.now() - profil.kayit_tarihi
-
             if kayit_suresi < datetime.timedelta(days=1):
                 indirim_aktif = True
+                indirim_uygula = True
                 indirim_bitis_tarihi = profil.kayit_tarihi + datetime.timedelta(days=1)
-                for kitap in kitaplar:
-                    # %10 indirim uygula
-                    kitap.indirimli_fiyat = (kitap.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
         except Profil.DoesNotExist:
             pass
+    else:  # Kullanıcı giriş yapmamışsa indirimi uygula
+        indirim_uygula = True
+
+    if indirim_uygula:
+        for kitap in kitaplar:
+            kitap.indirimli_fiyat = (kitap.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
 
     context = {
         'kitaplar': kitaplar,
@@ -218,18 +221,56 @@ def kitap_kayit_mevcut(request):
 
 
 def kitap_detay_view(request, kitap_id):
-    # İlgili ID'ye sahip kitabı veritabanından bulur. Bulamazsa 404 hatası verir.
     kitap = get_object_or_404(Kitap, id=kitap_id)
+    indirim_aktif = False
+    indirim_bitis_tarihi = None
+    indirimli_fiyat = None
+
+    if request.user.is_authenticated:
+        try:
+            profil = Profil.objects.get(user=request.user)
+            kayit_suresi = timezone.now() - profil.kayit_tarihi
+            if kayit_suresi < datetime.timedelta(days=1):
+                indirim_aktif = True
+                indirim_bitis_tarihi = profil.kayit_tarihi + datetime.timedelta(days=1)
+                indirimli_fiyat = (kitap.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
+        except Profil.DoesNotExist:
+            pass
+    else:
+        indirimli_fiyat = (kitap.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
+
     context = {
-        'kitap': kitap
+        'kitap': kitap,
+        'indirim_aktif': indirim_aktif,
+        'indirim_bitis_tarihi': indirim_bitis_tarihi.isoformat() if indirim_bitis_tarihi else None,
+        'indirimli_fiyat': indirimli_fiyat
     }
     return render(request, 'odeme/kitap_detay.html', context)
 
 
 def paket_detay_view(request, paket_id):
-    # İlgili ID'ye sahip eğitim paketini bulur. Bulamazsa 404 hatası verir.
     paket = get_object_or_404(EgitimPaketi, id=paket_id)
+    indirim_aktif = False
+    indirim_bitis_tarihi = None
+    indirimli_fiyat = None
+
+    if request.user.is_authenticated:
+        try:
+            profil = Profil.objects.get(user=request.user)
+            kayit_suresi = timezone.now() - profil.kayit_tarihi
+            if kayit_suresi < datetime.timedelta(days=1):
+                indirim_aktif = True
+                indirim_bitis_tarihi = profil.kayit_tarihi + datetime.timedelta(days=1)
+                indirimli_fiyat = (paket.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
+        except Profil.DoesNotExist:
+            pass
+    else:
+        indirimli_fiyat = (paket.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
+
     context = {
-        'paket': paket
+        'paket': paket,
+        'indirim_aktif': indirim_aktif,
+        'indirim_bitis_tarihi': indirim_bitis_tarihi.isoformat() if indirim_bitis_tarihi else None,
+        'indirimli_fiyat': indirimli_fiyat
     }
     return render(request, 'odeme/paket_detay.html', context)
