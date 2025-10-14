@@ -40,7 +40,7 @@ def kurs_detay(request, kurs_id):
 
     # Yeni sistemin devreye girdiği tarihi buraya yazın.
     # Örneğin: 1 Ekim 2025
-    eski_kullanici_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 13))
+    eski_kullanici_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 15))
 
     # Kullanıcının profilini ve kayıt tarihini kontrol et
     try:
@@ -66,7 +66,7 @@ def ders_detay(request, kurs_id, ders_id):
         return render(request, 'dersler/erisim_engellendi.html', {'sebep': 'giris_gerekli'})
 
     # Yeni sistemin devreye girdiği tarihi buraya yazın.
-    eski_kullanici_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 13))
+    eski_kullanici_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 15))
 
     # Kullanıcının profilini ve kayıt tarihini kontrol et
     try:
