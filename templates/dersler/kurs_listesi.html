@@ -25,7 +25,7 @@
                 <div class="card-body">
                     <h5 class="card-title">{{ kurs.baslik }}</h5>
                     <p class="card-text">{{ kurs.aciklama|truncatewords:20 }}</p>
-                    <a href="{% url 'dersler:kurs_detay' kurs.id %}" class="btn btn-success">Kursa Git</a>
+                    <a href="{% url 'dersler:kurs_detay' kurs.id %}" class="btn btn-primary w-100">Kursa Git</a>
                 </div>
             </div>
         </div>
