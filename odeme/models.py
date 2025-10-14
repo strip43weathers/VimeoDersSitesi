@@ -54,9 +54,12 @@ class Kitap(models.Model):
     baslik = models.CharField(max_length=200, verbose_name="Kitap Başlığı")
     aciklama = models.TextField(verbose_name="Açıklama", blank=True, null=True)
     fiyat = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Fiyat (EURO)")
+    # Yeni eklenen alan
+    fotograf = models.ImageField(upload_to='kitap_kapaklari/', blank=True, null=True, verbose_name="Kitap Kapağı")
 
     def __str__(self):
         return self.baslik
+
 
 class KitapSiparisi(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Kullanıcı")

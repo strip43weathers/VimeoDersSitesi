@@ -36,6 +36,16 @@
         {% for kitap in kitaplar %}
         <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
             <div class="card h-100 shadow-sm border-0 rounded-3 text-center">
+                
+                {# --- YENİ EKLENEN KİTAP FOTOĞRAFI BÖLÜMÜ --- #}
+                {% if kitap.fotograf %}
+                    <img src="{{ kitap.fotograf.url }}" class="card-img-top" alt="{{ kitap.baslik }} Kapak Resmi" style="height: 200px; object-fit: cover;">
+                {% else %}
+                    {# Varsayılan kapak resmi gösterilir #}
+                    <img src="{% static 'images/default_book_cover.png' %}" class="card-img-top" alt="Varsayılan Kapak" style="height: 200px; object-fit: cover;">
+                {% endif %}
+                {# --- KİTAP FOTOĞRAFI BÖLÜMÜ SONU --- #}
+                
                 <div class="card-body d-flex flex-column">
                     <h4 class="card-title fw-bold text-primary">{{ kitap.baslik }}</h4>
                     <p class="card-text text-muted flex-grow-1">{{ kitap.aciklama|truncatewords:20 }}</p>
