@@ -31,7 +31,7 @@ INSTALLED_APPS = [
     'sayfalar',
     'ckeditor',
     'blog',
-    'kitapkayit',
+    #     'kitapkayit',
     'odeme',
 ]
 

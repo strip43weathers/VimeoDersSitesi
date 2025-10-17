@@ -21,7 +21,7 @@ urlpatterns = [
     ),
     path('', dersler_views.anasayfa_view, name='anasayfa'),
     path('blog/', include('blog.urls')),
-    path('kitap-kayit/', include('kitapkayit.urls')),
+    #       path('kitap-kayit/', include('kitapkayit.urls')),
     path('kurslar/', include('dersler.urls')),
     path('oyunlar/', include('oyunlar.urls')),
     path('odeme/', include('odeme.urls')),
