@@ -127,9 +127,6 @@
                         <a class="nav-link" href="{% url 'odeme:kitap_listesi' %}">Kitaplar</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'odeme:sinav_bilgilendirme' %}">Sertifika Sınavı</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="{% url 'blog:blog_listesi' %}">Blog</a> {# YENİ EKLENEN SATIR #}
                     </li>
                     <li class="nav-item"><span class="navbar-text mx-2">Merhaba, {{ user.first_name|default:user.username }}!</span></li>
@@ -142,9 +139,6 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'odeme:paket_listesi' %}">Eğitim Paketleri</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'odeme:sinav_bilgilendirme' %}">Sertifika Sınavı</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'blog:blog_listesi' %}">Blog</a>
@@ -184,7 +178,8 @@
             <div class="col-md-6 col-lg-3 mx-auto mt-3">
                 <h5 class="text-uppercase mb-4 fw-bold">İletişim</h5>
                 <p><i class="bi bi-geo-alt-fill me-3"></i> İstanbul, Türkiye</p>
-                <p><i class="bi bi-envelope-fill me-3"></i> romingoacademy@outlook.com</p>
+                <p><i class="bi bi-envelope-fill me-3"></i> info@romingoakademi.com</p>
+                <p><i class="bi bi-envelope-fill me-3"></i> sinav@romingoakademi.com</p>
                 <p><i class="bi bi-telephone-fill me-3"></i> +90 551 459 67 80</p>
             </div>
 
