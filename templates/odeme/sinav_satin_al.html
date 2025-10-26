@@ -2,75 +2,81 @@
 {% load static %}
 
 {% block content %}
+<style>
+    /* Stil kodları yukarıdakiyle aynı, buraya tekrar eklenebilir veya base.html'e taşınabilir. */
+    .gradient-header-success {
+        background: linear-gradient(45deg, #198754, #157347);
+        border-bottom: 0;
+    }
+    .order-summary-box { background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: .5rem; }
+    .form-control-icon { position: absolute; top: 50%; left: 1rem; transform: translateY(-50%); color: #6c757d; }
+    .form-control.with-icon { padding-left: 3rem; }
+    .trust-badge { font-size: 0.85rem; color: #6c757d; }
+</style>
+
 <div class="container my-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-lg border-0 rounded-3">
-                <div class="card-header bg-success text-white text-center py-4">
-                    <h2 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Sınav Kaydı</h2>
+        <div class="col-xl-10 col-lg-12">
+            <div class="card shadow-lg border-0 rounded-3 overflow-hidden">
+                <div class="card-header gradient-header-success text-white text-center py-4">
+                    <h2 class="mb-0 fw-bold"><i class="fas fa-graduation-cap me-2"></i>Sınav Kayıt Ekranı</h2>
                 </div>
                 <div class="card-body p-4 p-md-5">
-                    <h3 class="card-title fw-bold mb-4">{{ sinav.baslik }}</h3>
+                    <div class="row g-5">
+                        <div class="col-md-5">
+                            <h3 class="fw-bold mb-4">Sınav Bilgileri</h3>
+                            <div class="order-summary-box p-4">
+                                <h5 class="fw-bold text-success">{{ sinav.baslik }}</h5>
+                                <hr>
+                                <p class="text-muted mb-1 fs-6">Sınav Kayıt Ücreti</p>
+                                <h4 class="fw-bold text-success mb-0">{{ sinav.fiyat }} EURO</h4>
+                            </div>
+                        </div>
 
-                    <div class="p-3 bg-light rounded-3 mb-4">
-                        <h5 class="fw-bold">Sınav Ücreti</h5>
-                        <hr>
-                        <h4 class="fw-bold">{{ sinav.fiyat }} EURO</h4>
-                    </div>
+                        <div class="col-md-7">
+                            <h3 class="fw-bold mb-4">Kayıt Bilgileriniz</h3>
+                            <form method="post" class="needs-validation" novalidate>
+                                {% csrf_token %}
+                                {{ form.non_field_errors }}
 
-                    <h5 class="fw-bold mt-5 mb-3">Kayıt Bilgileri</h5>
-                    <form method="post" class="needs-validation" novalidate>
-                        {% csrf_token %}
-                        
-                        {{ form.non_field_errors }}
-                        
-                        {% for field in form.visible_fields %}
-                            {% if field.name != 'sozlesme_onay' and field.name != 'teslimat_ve_iade_onay' %}
-                                <div class="mb-3">
-                                    {{ field.label_tag }}
-                                    {{ field }}
-                                    {% if field.help_text %}
-                                        <small class="form-text text-muted">{{ field.help_text }}</small>
-                                    {% endif %}
-                                    {% for error in field.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ error }}
+                                {% for field in form.visible_fields %}
+                                    {% if field.name != 'sozlesme_onay' and field.name != 'teslimat_ve_iade_onay' %}
+                                        <div class="mb-3 position-relative">
+                                            {{ field.label_tag }}
+                                            {% if field.name == 'ad' or field.name == 'soyad' %}<i class="fas fa-user form-control-icon"></i>{% elif field.name == 'email' %}<i class="fas fa-envelope form-control-icon"></i>{% else %}<i class="fas fa-pen form-control-icon"></i>{% endif %}
+                                            {{ field }}
+                                            {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
                                         </div>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        {% endfor %}
+                                    {% endif %}
+                                {% endfor %}
 
-                        <div class="form-check mt-4">
-                            {{ form.sozlesme_onay }}
-                            <label class="form-check-label" for="{{ form.sozlesme_onay.id_for_label }}">
-                                <a href="{% url 'odeme:satis_sozlesmesi' %}" target="_blank">Satış sözleşmesini</a> okudum ve kabul ediyorum.
-                            </label>
-                            {% for error in form.sozlesme_onay.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ error }}
+                                <div class="form-check mt-4">
+                                    {{ form.sozlesme_onay }}
+                                    <label class="form-check-label" for="{{ form.sozlesme_onay.id_for_label }}">
+                                        <a href="{% url 'odeme:satis_sozlesmesi' %}" target="_blank">Satış sözleşmesini</a> okudum, kabul ediyorum.
+                                    </label>
+                                    {% for error in form.sozlesme_onay.errors %}<div class="invalid-feedback d-block mt-1">{{ error }}</div>{% endfor %}
                                 </div>
-                            {% endfor %}
-                        </div>
 
-                        <div class="form-check mt-2">
-                            {{ form.teslimat_ve_iade_onay }}
-                            <label class="form-check-label" for="{{ form.teslimat_ve_iade_onay.id_for_label }}">
-                                <a href="{% url 'odeme:teslimat_iade' %}" target="_blank">Teslimat ve iade şartlarını</a> okudum ve kabul ediyorum.
-                            </label>
-                            {% for error in form.teslimat_ve_iade_onay.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ error }}
+                                <div class="form-check mt-2 mb-4">
+                                    {{ form.teslimat_ve_iade_onay }}
+                                    <label class="form-check-label" for="{{ form.teslimat_ve_iade_onay.id_for_label }}">
+                                        <a href="{% url 'odeme:teslimat_iade' %}" target="_blank">Teslimat ve iade şartlarını</a> okudum, kabul ediyorum.
+                                    </label>
+                                    {% for error in form.teslimat_ve_iade_onay.errors %}<div class="invalid-feedback d-block mt-1">{{ error }}</div>{% endfor %}
                                 </div>
-                            {% endfor %}
+
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-success btn-lg w-100 fw-bold">
+                                        <i class="fas fa-check-circle me-2"></i>Kaydı Tamamla ve Öde
+                                    </button>
+                                </div>
+                                <div class="text-center mt-3 trust-badge">
+                                    <i class="fas fa-lock me-1"></i> Ödemeniz Iyzico güvencesi altındadır.
+                                </div>
+                            </form>
                         </div>
-                        
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-check-circle me-2"></i>Kaydı Tamamla ve Öde
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
