@@ -42,7 +42,7 @@ def kurs_listesi(request):
         # Eğer paketi yoksa, eski kullanıcı mı diye kontrol et
         if not kullanici_paket_sahibi_mi:
             # !!! ÖNEMLİ: Bu tarihi bir önceki adımda kullandığınız tarih ile aynı yapın !!!
-            gecis_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 20))
+            gecis_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 30))
 
             if request.user.date_joined < gecis_tarihi:
                 is_eski_kullanici = True
@@ -70,7 +70,7 @@ def kurs_detay(request, kurs_id):
     is_eski_kullanici = False
     if not paket_sahibi:
         # !!! DİKKAT: BU TARİHİ KENDİ SİSTEMİNİZİN GEÇİŞ TARİHİYLE DEĞİŞTİRİN !!!
-        gecis_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 20))
+        gecis_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 30))
 
         if request.user.date_joined < gecis_tarihi:
             is_eski_kullanici = True
@@ -97,7 +97,7 @@ def ders_detay(request, kurs_id, ders_id):
     is_eski_kullanici = False
     if not paket_sahibi:
         # !!! DİKKAT: BU TARİHİ KENDİ SİSTEMİNİZİN GEÇİŞ TARİHİYLE DEĞİŞTİRİN !!!
-        gecis_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 20))
+        gecis_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 30))
         if request.user.date_joined < gecis_tarihi:
             is_eski_kullanici = True
 
