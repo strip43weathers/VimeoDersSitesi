@@ -42,7 +42,7 @@ def kurs_listesi(request):
         # Eğer paketi yoksa, eski kullanıcı mı diye kontrol et
         if not kullanici_paket_sahibi_mi:
             # !!! ÖNEMLİ: Bu tarihi bir önceki adımda kullandığınız tarih ile aynı yapın !!!
-            gecis_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 30))
+            gecis_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 25))
 
             if request.user.date_joined < gecis_tarihi:
                 is_eski_kullanici = True
@@ -58,8 +58,7 @@ def kurs_listesi(request):
 def kurs_detay(request, kurs_id):
     """
     Bir kursun detaylarını ve derslerini gösterir.
-    Sadece paket sahibi olan kullanıcılar veya eski kullanıcılar erişebilir.
-    (Bu fonksiyonun önceki işlevselliği korunmuştur.)
+    Sadece paket sahibi olan kullanıcılar, eski kullanıcılar veya özel erişimi olanlar erişebilir.
     """
     if not request.user.is_authenticated:
         return render(request, 'dersler/erisim_engellendi.html', {'sebep': 'giris_gerekli'})
@@ -68,14 +67,20 @@ def kurs_detay(request, kurs_id):
     paket_sahibi = PaketSiparisi.objects.filter(user=request.user, odeme_tamamlandi=True).exists()
 
     is_eski_kullanici = False
-    if not paket_sahibi:
+    ozel_erisim = False
+    try:
+        ozel_erisim = request.user.profil.ozel_erisim
+    except Profil.DoesNotExist:
+        pass
+
+    if not paket_sahibi and not ozel_erisim:
         # !!! DİKKAT: BU TARİHİ KENDİ SİSTEMİNİZİN GEÇİŞ TARİHİYLE DEĞİŞTİRİN !!!
-        gecis_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 30))
+        gecis_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 25))
 
         if request.user.date_joined < gecis_tarihi:
             is_eski_kullanici = True
 
-    if not paket_sahibi and not is_eski_kullanici:
+    if not paket_sahibi and not is_eski_kullanici and not ozel_erisim:
         return render(request, 'dersler/erisim_engellendi.html', {'sebep': 'paket_gerekli'})
 
     kurs = get_object_or_404(Kurs, pk=kurs_id)
@@ -85,8 +90,7 @@ def kurs_detay(request, kurs_id):
 def ders_detay(request, kurs_id, ders_id):
     """
     Bir dersin detayını (videoyu) gösterir.
-    Sadece paket sahibi olan kullanıcılar veya eski kullanıcılar erişebilir.
-    (Bu fonksiyonun önceki işlevselliği korunmuştur.)
+    Sadece paket sahibi olan kullanıcılar, eski kullanıcılar veya özel erişimi olanlar erişebilir.
     """
     if not request.user.is_authenticated:
         return render(request, 'dersler/erisim_engellendi.html', {'sebep': 'giris_gerekli'})
@@ -95,13 +99,19 @@ def ders_detay(request, kurs_id, ders_id):
     paket_sahibi = PaketSiparisi.objects.filter(user=request.user, odeme_tamamlandi=True).exists()
 
     is_eski_kullanici = False
-    if not paket_sahibi:
+    ozel_erisim = False
+    try:
+        ozel_erisim = request.user.profil.ozel_erisim
+    except Profil.DoesNotExist:
+        pass
+
+    if not paket_sahibi and not ozel_erisim:
         # !!! DİKKAT: BU TARİHİ KENDİ SİSTEMİNİZİN GEÇİŞ TARİHİYLE DEĞİŞTİRİN !!!
-        gecis_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 30))
+        gecis_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 25))
         if request.user.date_joined < gecis_tarihi:
             is_eski_kullanici = True
 
-    if not paket_sahibi and not is_eski_kullanici:
+    if not paket_sahibi and not is_eski_kullanici and not ozel_erisim:
         return render(request, 'dersler/erisim_engellendi.html', {'sebep': 'paket_gerekli'})
 
     ders = get_object_or_404(Ders, kurs_id=kurs_id, pk=ders_id)

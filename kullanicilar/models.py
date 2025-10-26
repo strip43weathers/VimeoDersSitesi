@@ -9,6 +9,7 @@ class Profil(models.Model):
     telefon = models.CharField(max_length=15, blank=True, verbose_name="Telefon Numarası")
     onaylandi = models.BooleanField(default=True, verbose_name="Hesap Onaylandı")
     kayit_tarihi = models.DateTimeField(default=timezone.now)
+    ozel_erisim = models.BooleanField(default=False, verbose_name="Özel Erişim") # Yeni Alan
 
     def __str__(self):
         return self.user.username
