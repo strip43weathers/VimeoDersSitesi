@@ -7,6 +7,7 @@ from blog.models import BlogYazisi
 import datetime
 from django.utils import timezone
 from sayfalar.models import RehberVideo
+from kullanicilar.models import Profil # <--- BU SATIRI EKLEYİN
 
 
 def anasayfa_view(request):
