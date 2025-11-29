@@ -6,34 +6,56 @@
 <div class="container mt-5">
     <h1 class="mb-4">Tüm Kurslar</h1>
 
-    {# Sadece yeni ve paket almamış kullanıcılara bu kutuyu göster #}
-    {% if user.is_authenticated and not kullanici_paket_sahibi_mi and not is_eski_kullanici %}
-    <div class="alert alert-info" role="alert">
-        <h4 class="alert-heading">Süresiz Erişim Fırsatı!</h4>
-        <p>Tüm kurs içeriklerine süresiz erişim için eğitim paketlerimizi inceleyebilirsiniz. Eğitim paketini bir kez satın aldığınızda, mevcut ve gelecekte eklenecek tüm kurslara ömür boyu erişim hakkı kazanırsınız.</p>
-        <hr>
-        <p class="mb-0">
-            <a href="{% url 'odeme:paket_listesi' %}" class="btn btn-primary">Eğitim Paketlerini İncele</a>
-        </p>
+    {# Sadece yetkisi olmayan (paketi yok, eski değil, özel izni yok) kullanıcılara göster #}
+    {% if user.is_authenticated and not kullanici_paket_sahibi_mi and not is_eski_kullanici and not ozel_erisim_var %}
+    <div class="card border-0 shadow rounded-4 mb-5 overflow-hidden bg-white">
+        <div class="card-body p-5 text-center">
+            <div class="mb-4">
+                <span class="d-inline-block p-3 rounded-circle bg-light text-primary">
+                    <i class="bi bi-lock-fill display-4"></i>
+                </span>
+            </div>
+            <h3 class="fw-bold mb-3">Tüm Kurslara Erişim Sağlayın</h3>
+            <p class="lead text-muted mb-4 mx-auto" style="max-width: 700px;">
+                Eğitim içeriklerimizin tamamına ve video derslere sınırsız erişim sağlamak, seviyenize uygun programı belirlemek için eğitim danışmanlarımızla iletişime geçebilirsiniz.
+            </p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                {# base.html'deki telefon numaranıza göre WhatsApp linki #}
+                <a href="https://wa.me/905514596780" target="_blank" class="btn btn-success btn-lg px-4 rounded-pill">
+                    <i class="bi bi-whatsapp me-2"></i>WhatsApp ile Yazın
+                </a>
+                <a href="mailto:info@romingoakademi.com" class="btn btn-primary btn-lg px-4 rounded-pill">
+                    <i class="bi bi-envelope-fill me-2"></i>Bize E-posta Gönderin
+                </a>
+            </div>
+        </div>
     </div>
     {% endif %}
 
     <div class="row">
         {% for kurs in kurslar %}
         <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">{{ kurs.baslik }}</h5>
-                    <p class="card-text">{{ kurs.aciklama|truncatewords:20 }}</p>
-                    <a href="{% url 'dersler:kurs_detay' kurs.id %}" class="btn btn-primary w-100">Kursa Git</a>
+            <div class="card h-100 shadow-sm border-0 card-hover">
+                {# Eğer kurs görseli varsa buraya eklenebilir #}
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fw-bold text-primary">{{ kurs.baslik }}</h5>
+                    <p class="card-text text-muted">{{ kurs.aciklama|truncatewords:20 }}</p>
+                    <div class="mt-auto">
+                        <a href="{% url 'dersler:kurs_detay' kurs.id %}" class="btn btn-outline-primary w-100 rounded-pill">Kursa Git</a>
+                    </div>
                 </div>
             </div>
         </div>
         {% empty %}
         <div class="col">
-            <p>Henüz kurs eklenmemiş.</p>
+            <div class="alert alert-light text-center">Henüz kurs eklenmemiş.</div>
         </div>
         {% endfor %}
     </div>
 </div>
+
+<style>
+    .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
+</style>
 {% endblock %}

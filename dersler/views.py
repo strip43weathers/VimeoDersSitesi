@@ -30,28 +30,34 @@ def anasayfa_view(request):
 
 def kurs_listesi(request):
     """
-    Tüm kursları listeler ve kullanıcının eski veya paket sahibi olup olmadığını kontrol eder.
+    Tüm kursları listeler; paket sahibi, eski kullanıcı veya özel erişim kontrolü yapar.
     """
     kurslar = Kurs.objects.all()
     kullanici_paket_sahibi_mi = False
-    is_eski_kullanici = False  # Yeni kontrol değişkeni
+    is_eski_kullanici = False
+    ozel_erisim_var = False  # YENİ EKLENEN DEĞİŞKEN
 
     if request.user.is_authenticated:
-        # Kullanıcının zaten bir paketi var mı diye kontrol et
+        # 1. Özel Erişim Kontrolü
+        try:
+            ozel_erisim_var = request.user.profil.ozel_erisim
+        except Profil.DoesNotExist:
+            ozel_erisim_var = False
+
+        # 2. Paket Sahipliği Kontrolü
         kullanici_paket_sahibi_mi = PaketSiparisi.objects.filter(user=request.user, odeme_tamamlandi=True).exists()
 
-        # Eğer paketi yoksa, eski kullanıcı mı diye kontrol et
-        if not kullanici_paket_sahibi_mi:
-            # !!! ÖNEMLİ: Bu tarihi bir önceki adımda kullandığınız tarih ile aynı yapın !!!
-            gecis_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 25))
-
+        # 3. Eski Kullanıcı Kontrolü (Paketi veya özel erişimi yoksa)
+        if not kullanici_paket_sahibi_mi and not ozel_erisim_var:
+            gecis_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 25)) # Tarihi kontrol edin
             if request.user.date_joined < gecis_tarihi:
                 is_eski_kullanici = True
 
     context = {
         'kurslar': kurslar,
         'kullanici_paket_sahibi_mi': kullanici_paket_sahibi_mi,
-        'is_eski_kullanici': is_eski_kullanici,  # Bu bilgiyi şablona gönderiyoruz
+        'is_eski_kullanici': is_eski_kullanici,
+        'ozel_erisim_var': ozel_erisim_var, # YENİ: Şablona bu bilgiyi gönderiyoruz
     }
     return render(request, 'dersler/kurs_listesi.html', context)
 

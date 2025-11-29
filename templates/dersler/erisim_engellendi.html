@@ -4,23 +4,54 @@
 <div class="container mt-5">
 
     {% if sebep == 'giris_gerekli' %}
-    <div class="alert alert-warning text-center" role="alert">
-        <h4 class="alert-heading">Erişim Engellendi!</h4>
-        <p>Bu içeriği ve videoları görüntüleyebilmek için lütfen giriş yapın.</p>
-        <p>Eğer bir hesabınız yoksa, saniyeler içinde ücretsiz kaydolabilirsiniz.</p>
-        <hr>
-        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary btn-lg">Giriş Yap</a>
+    {# DURUM 1: Kullanıcı Giriş Yapmamış #}
+    <div class="card border-0 shadow-sm rounded-4 mb-5 bg-gradient-primary text-white" style="background: linear-gradient(135deg, #002B7F 0%, #001f5c 100%);">
+        <div class="card-body p-5 text-center">
+            <div class="mb-3">
+                <i class="bi bi-person-lock display-3 text-warning"></i>
+            </div>
+            <h3 class="fw-bold mb-3">Bu İçeriği Görüntülemek İçin Giriş Yapın</h3>
+            <p class="lead mb-4 opacity-75 mx-auto" style="max-width: 600px;">
+                Ders videolarına, özel içeriklere ve oyunlara erişmek için lütfen hesabınıza giriş yapın veya saniyeler içinde ücretsiz kayıt olun.
+            </p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-light btn-lg px-5 rounded-pill fw-bold text-primary shadow-sm">Giriş Yap</a>
+                <a href="{% url 'kullanicilar:kayit' %}" class="btn btn-warning btn-lg px-5 rounded-pill fw-bold shadow-sm">Kayıt Ol</a>
+            </div>
+        </div>
     </div>
 
     {% elif sebep == 'paket_gerekli' %}
-    <div class="alert alert-info text-center" role="alert">
-        <h4 class="alert-heading">Bu İçerik Size Özel!</h4>
-        <p>Videolara ve tüm kurs içeriklerine sınırsız erişim sağlamak için eğitim paketlerimizden birini satın almanız yeterli.</p>
-        <p>Hemen bir paket seçin ve öğrenmeye başlayın!</p>
-        <hr>
-        <a href="{% url 'odeme:paket_listesi' %}" class="btn btn-success btn-lg">Eğitim Paketlerini İncele</a>
+    {# DURUM 2: Kullanıcı Giriş Yapmış Ama Yetkisi Yok #}
+    <div class="card border-0 shadow rounded-4 mb-5 overflow-hidden bg-white">
+        <div class="card-body p-5 text-center">
+            <div class="mb-4">
+                <span class="d-inline-block p-3 rounded-circle bg-light text-danger">
+                    <i class="bi bi-shield-lock-fill display-4"></i>
+                </span>
+            </div>
+            <h3 class="fw-bold mb-3">Erişim İzni Gerekiyor</h3>
+            <p class="lead text-muted mb-4 mx-auto" style="max-width: 700px;">
+                Bu derse veya içeriğe erişim hakkınız bulunmamaktadır. Tüm içeriklere sınırsız erişim sağlamak ve size uygun eğitim planını oluşturmak için lütfen bizimle iletişime geçin.
+            </p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                {# base.html'deki numaranızla uyumlu WhatsApp linki #}
+                <a href="https://wa.me/905514596780" target="_blank" class="btn btn-success btn-lg px-4 rounded-pill shadow-sm">
+                    <i class="bi bi-whatsapp me-2"></i>WhatsApp ile Yazın
+                </a>
+                <a href="mailto:info@romingoakademi.com" class="btn btn-primary btn-lg px-4 rounded-pill shadow-sm">
+                    <i class="bi bi-envelope-fill me-2"></i>Bize E-posta Gönderin
+                </a>
+            </div>
+        </div>
     </div>
     {% endif %}
+
+    <div class="text-center mt-4 mb-5">
+        <a href="{% url 'anasayfa' %}" class="btn btn-link text-muted text-decoration-none">
+            <i class="bi bi-arrow-left me-2"></i>Ana Sayfaya Dön
+        </a>
+    </div>
 
 </div>
 {% endblock %}

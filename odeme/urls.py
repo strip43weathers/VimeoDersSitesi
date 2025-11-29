@@ -17,13 +17,13 @@ urlpatterns = [
     path('teslimat-ve-iade-sartlari/', views.teslimat_iade_sartlari, name='teslimat_iade'),
 
     # --- Eğitim Paketi URL'leri ---
-    path('paket/<int:paket_id>/', views.paket_detay_view, name='paket_detay'),
-    path('egitim-paketleri/', views.paket_listesi, name='paket_listesi'),
-    path('paket-satin-al/<int:paket_id>/', views.paket_satin_al, name='paket_satin_al'),
+    # path('paket/<int:paket_id>/', views.paket_detay_view, name='paket_detay'),
+    # path('egitim-paketleri/', views.paket_listesi, name='paket_listesi'),
+    # path('paket-satin-al/<int:paket_id>/', views.paket_satin_al, name='paket_satin_al'),
 
     # Yeni Eklenen Paket Yönlendirme URL'leri
-    path('paket-kayit-basarili/', views.paket_kayit_basarili, name='paket_kayit_basarili'),
-    path('paket-kayit-mevcut/', views.paket_kayit_mevcut, name='paket_kayit_mevcut'),
+    # path('paket-kayit-basarili/', views.paket_kayit_basarili, name='paket_kayit_basarili'),
+    # path('paket-kayit-mevcut/', views.paket_kayit_mevcut, name='paket_kayit_mevcut'),
 
     # --- KİTAP URL'LERİ ---
     path('kitap/<int:kitap_id>/', views.kitap_detay_view, name='kitap_detay'),

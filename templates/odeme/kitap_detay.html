@@ -3,62 +3,86 @@
 
 {% block content %}
 <div class="container my-5">
-    {# --- İNDİRİM BİLGİLENDİRME ALANI --- #}
+    {# --- MODERN İNDİRİM BİLGİLENDİRME ALANI --- #}
     {% if user.is_authenticated %}
         {% if indirim_aktif %}
-        <div class="alert alert-success d-flex align-items-center shadow-sm mb-4" role="alert">
-            <i class="fas fa-gift fa-2x me-3"></i>
-            <div>
-                <h4 class="alert-heading">Yeni Üyeliğe Özel Fırsat!</h4>
-                <p>Tebrikler! Bu üründe geçerli <strong>%10 indirim</strong> kazandınız.</p>
-                <hr>
-                <p class="mb-0">Fırsatın bitmesine kalan süre: <strong id="countdown-timer"></strong></p>
+        <div class="card border-0 shadow rounded-4 mb-5 overflow-hidden text-white" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between position-relative">
+                <div class="d-flex align-items-center position-relative z-1">
+                    <div class="bg-white text-success rounded-circle p-3 me-3 d-none d-md-block shadow-sm">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-1">İndirim Aktif!</h4>
+                        <p class="mb-0 opacity-90">Bu ürünü <strong>%10 indirimli</strong> fiyatıyla hemen alabilirsiniz.</p>
+                    </div>
+                </div>
+                <div class="text-end position-relative z-1" style="margin-right: 8rem; text-shadow: 0 1px 3px rgba(0,0,0,0.2);">
+                    <small class="text-uppercase opacity-75 fw-bold" style="font-size: 0.75rem;">Kalan Süre</small>
+                    <div id="countdown-timer" class="fs-4 fw-bold font-monospace">...</div>
+                </div>
+                <i class="bi bi-tag-fill position-absolute text-white opacity-10" style="font-size: 8rem; right: 10px; bottom: -20px; transform: rotate(-20deg);"></i>
             </div>
         </div>
         {% endif %}
     {% else %}
-    <div class="alert alert-info d-flex align-items-center shadow-sm mb-4" role="alert">
-        <i class="fas fa-percentage fa-2x me-3"></i>
-        <div>
-            <h4 class="alert-heading">Yeni Kayıt Olanlara Özel %10 İndirim!</h4>
-            <p>Bu üründe geçerli %10 indirim fırsatından yararlanmak için hemen şimdi kaydolun</a>.</p>
+    <div class="card border-0 shadow rounded-4 mb-5 overflow-hidden" style="background: linear-gradient(135deg, #6610f2 0%, #6f42c1 100%); color: white;">
+        <div class="card-body p-4 text-center position-relative">
+            <div class="position-relative z-1">
+                <i class="fas fa-crown mb-3 text-warning display-5"></i>
+                <h4 class="fw-bold">Bu Kitabı %10 İndirimle Almak İster misiniz?</h4>
+                <p class="opacity-90 mb-4">Sitemize ücretsiz üye olarak bu kitapta geçerli indirim kodunuzu anında tanımlayabilirsiniz.</p>
+                <a href="{% url 'kullanicilar:kayit' %}" class="btn btn-warning fw-bold px-4 rounded-pill shadow-sm">
+                    Üye Ol ve İndirimi Kap
+                </a>
+            </div>
         </div>
     </div>
     {% endif %}
     {# --- İNDİRİM ALANI SONU --- #}
 
-    <div class="row">
-        <div class="col-md-6">
-            {% if kitap.fotograf %}
-                <img src="{{ kitap.fotograf.url }}" class="img-fluid rounded shadow-sm" alt="{{ kitap.baslik }} Kapak Resmi">
-            {% else %}
-                <img src="{% static 'images/default_book_cover.png' %}" class="img-fluid rounded shadow-sm" alt="Varsayılan Kapak">
-            {% endif %}
-        </div>
-        <div class="col-md-6 d-flex flex-column">
-            <h1 class="display-5 fw-bold">{{ kitap.baslik }}</h1>
-            <div class="lead text-muted">{{ kitap.aciklama|linebreaks }}</div>
-            <hr>
-            <div class="mt-auto">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        {% if indirimli_fiyat %}
-                            <p class="text-muted mb-1"><del>{{ kitap.fiyat }} TL</del></p>
-                            <h2 class="fw-bold text-success">{{ indirimli_fiyat }} TL</h2>
-                        {% else %}
-                            <h2 class="fw-bold text-dark">{{ kitap.fiyat }} TL</h2>
-                        {% endif %}
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="row g-0">
+            <div class="col-md-5 bg-light d-flex align-items-center justify-content-center p-4">
+                {% if kitap.fotograf %}
+                    <img src="{{ kitap.fotograf.url }}" class="img-fluid rounded shadow" alt="{{ kitap.baslik }} Kapak Resmi" style="max-height: 500px;">
+                {% else %}
+                    <img src="{% static 'images/default_book_cover.png' %}" class="img-fluid rounded shadow" alt="Varsayılan Kapak">
+                {% endif %}
+            </div>
+            <div class="col-md-7">
+                <div class="card-body p-4 p-lg-5 d-flex flex-column h-100">
+                    <h1 class="display-6 fw-bold text-primary mb-3">{{ kitap.baslik }}</h1>
+                    
+                    <div class="text-muted mb-4 fs-5" style="line-height: 1.8;">
+                        {{ kitap.aciklama|linebreaks }}
                     </div>
-                    <div>
-                        {% if user.is_authenticated %}
-                            <a href="{% url 'odeme:kitap_satin_al' kitap.id %}" class="btn btn-primary btn-lg">
-                                <i class="fas fa-shopping-cart me-2"></i>Satın Al
-                            </a>
-                        {% else %}
-                            <div class="alert alert-info shadow-sm">
-                                Satın almak için lütfen <a href="{% url 'login' %}" class="alert-link">giriş yapın</a> ya da kaydolun</a>.
+                    
+                    <div class="mt-auto pt-4 border-top">
+                        <div class="row align-items-center">
+                            <div class="col-sm-6 mb-3 mb-sm-0">
+                                <span class="text-muted text-uppercase small fw-bold">Satış Fiyatı</span>
+                                <div class="d-flex align-items-baseline mt-1">
+                                    {% if indirimli_fiyat %}
+                                        <h2 class="fw-bold text-success mb-0 me-3">{{ indirimli_fiyat }} TL</h2>
+                                        <span class="text-decoration-line-through text-muted fs-5">{{ kitap.fiyat }} TL</span>
+                                    {% else %}
+                                        <h2 class="fw-bold text-dark mb-0">{{ kitap.fiyat }} TL</h2>
+                                    {% endif %}
+                                </div>
                             </div>
-                        {% endif %}
+                            <div class="col-sm-6 text-end">
+                                {% if user.is_authenticated %}
+                                    <a href="{% url 'odeme:kitap_satin_al' kitap.id %}" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm w-100 w-sm-auto">
+                                        Satın Al <i class="fas fa-chevron-right ms-2"></i>
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg rounded-pill px-4 fw-bold w-100 w-sm-auto">
+                                        Satın Almak İçin Giriş Yap
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -66,7 +90,7 @@
     </div>
 </div>
 
-{# --- JAVASCRIPT KISMI --- #}
+{# --- JAVASCRIPT KISMI (Aynı) --- #}
 {% if indirim_aktif %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -80,8 +104,7 @@
 
                 if (distance < 0) {
                     clearInterval(countdownFunction);
-                    timerElement.innerHTML = "SÜRE DOLDU";
-                    timerElement.closest('.alert').style.display = 'none';
+                    timerElement.innerHTML = "00:00:00";
                     return;
                 }
 
@@ -89,7 +112,12 @@
                 var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                 var seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-                timerElement.innerHTML = hours + " saat " + minutes + " dakika " + seconds + " saniye ";
+                // Tek basamaklı sayıların başına 0 ekleme (Örn: 09:05:03)
+                hours = hours < 10 ? "0" + hours : hours;
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                timerElement.innerHTML = hours + ":" + minutes + ":" + seconds;
             }, 1000);
         }
     });

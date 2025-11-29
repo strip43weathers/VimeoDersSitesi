@@ -8,25 +8,47 @@
         <p class="lead text-muted">Bilgiye giden yolda size eşlik edecek kaynaklar. Keşfedin ve okumaya başlayın!</p>
     </div>
 
-    {# --- İNDİRİM BİLGİLENDİRME ALANI (Orijinal haliyle korunuyor) --- #}
+    {# --- MODERN İNDİRİM BİLGİLENDİRME ALANI --- #}
     {% if user.is_authenticated %}
         {% if indirim_aktif %}
-        <div class="alert alert-success d-flex align-items-center shadow-sm" role="alert">
-            <i class="fas fa-gift fa-2x me-3"></i>
-            <div>
-                <h4 class="alert-heading">Yeni Üyeliğe Özel Fırsat!</h4>
-                <p>Tebrikler! Yeni kayıt olduğunuz için 24 saat boyunca tüm kitaplarda geçerli <strong>%10 indirim</strong> kazandınız.</p>
-                <hr>
-                <p class="mb-0">Fırsatın bitmesine kalan süre: <strong id="countdown-timer"></strong></p>
+        <div class="card border-0 shadow rounded-4 mb-5 text-white overflow-hidden" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+            <div class="card-body p-4 p-md-5 d-flex flex-column flex-md-row align-items-center justify-content-between position-relative">
+                <i class="bi bi-stopwatch position-absolute text-white opacity-25" style="font-size: 10rem; right: -2rem; top: -2rem; transform: rotate(15deg);"></i>
+                
+                <div class="d-flex align-items-center mb-3 mb-md-0 position-relative z-1">
+                    <div class="bg-white text-success rounded-circle p-3 me-4 shadow-sm d-none d-sm-block">
+                        <i class="fas fa-gift fa-2x"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-1">Hoş Geldin Hediyesi!</h3>
+                        <p class="mb-0 opacity-90 fs-5">Tüm kitaplarda geçerli <strong>%10 indirim</strong> hesabına tanımlandı.</p>
+                    </div>
+                </div>
+                
+                <div class="text-center position-relative z-1 ms-md-4 bg-white bg-opacity-25 p-3 rounded-3 border border-white border-opacity-25 backdrop-blur">
+                    <small class="text-uppercase fw-bold letter-spacing-1 d-block mb-1">Fırsatın Bitmesine</small>
+                    <strong id="countdown-timer" class="display-6 fw-bold text-white" style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);">...</strong>
+                </div>
             </div>
         </div>
         {% endif %}
     {% else %}
-    <div class="alert alert-info d-flex align-items-center shadow-sm" role="alert">
-        <i class="fas fa-percentage fa-2x me-3"></i>
-        <div>
-            <h4 class="alert-heading">Yeni Kayıt Olanlara Özel %10 İndirim!</h4>
-            <p>Kitaplarda geçerli %10 indirim fırsatından yararlanmak için hemen şimdi kaydolun</a>. Kayıt olduktan sonraki 24 saat boyunca indirimden faydalanabilirsiniz.</p>
+    <div class="card border-0 shadow rounded-4 mb-5 text-white overflow-hidden bg-gradient-primary" style="background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);">
+        <div class="card-body p-4 p-md-5 text-center position-relative">
+            
+            
+            <div class="position-relative z-1">
+                <span class="badge bg-warning text-dark mb-3 px-3 py-2 rounded-pill fw-bold shadow-sm">
+                    <i class="fas fa-star me-1"></i> Yeni Üyeler İçin
+                </span>
+                <h2 class="fw-bold mb-3">İlk Siparişinize Özel %10 İndirim Fırsatı!</h2>
+                <p class="lead mb-4 opacity-90 mx-auto" style="max-width: 700px;">
+                    Hemen ücretsiz kayıt olun, 24 saat boyunca tüm kitap alışverişlerinizde geçerli indirimden anında yararlanın.
+                </p>
+                <a href="{% url 'kullanicilar:kayit' %}" class="btn btn-light btn-lg text-primary fw-bold px-5 rounded-pill shadow transform-hover">
+                    Hemen İndirimi Kap! <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+            </div>
         </div>
     </div>
     {% endif %}
@@ -46,57 +68,63 @@
                     {% else %}
                         <img src="{% static 'images/default_book_cover.png' %}" class="card-img-top" alt="Varsayılan Kapak" style="height: 200px; object-fit: cover;">
                     {% endif %}
-                    {# --- KİTAP FOTOĞRAFI SONU --- #}
                     
                     <div class="card-body d-flex flex-column">
                         <h4 class="card-title fw-bold text-primary">{{ kitap.baslik }}</h4>
-                        {# Açıklamanın kısa hali burada gösteriliyor #}
                         <p class="card-text text-muted flex-grow-1">{{ kitap.aciklama|truncatewords:20 }}</p>
                         <div class="mt-auto">
                             {% if kitap.indirimli_fiyat %}
-                                <p class="text-muted mb-1"><del>{{ kitap.fiyat }} TL</del></p>
+                                <div class="badge bg-danger mb-2">Fırsat</div>
+                                <p class="text-muted mb-0 small text-decoration-line-through">{{ kitap.fiyat }} TL</p>
                                 <h3 class="fw-bold text-success">{{ kitap.indirimli_fiyat }} TL</h3>
                             {% else %}
                                 <h3 class="fw-bold text-dark">{{ kitap.fiyat }} TL</h3>
                             {% endif %}
-                            {# "Satın Al" butonu "Detayları Gör" olarak değiştirildi #}
-                            <span class="btn btn-primary w-100 mt-3">
-                                <i class="fas fa-info-circle me-2"></i>Detayları Gör
+                            <span class="btn btn-outline-primary w-100 mt-3 rounded-pill">
+                                <i class="fas fa-book-open me-2"></i>Detayları Gör
                             </span>
                         </div>
                     </div>
                 </div>
             </a>
-            {# --- LİNK BİTİŞİ --- #}
             
         </div>
         {% empty %}
         <div class="col-12">
-            <div class="alert alert-warning text-center">
-                <p class="mb-0">Şu anda satışta olan bir kitap bulunmamaktadır.</p>
+            <div class="alert alert-light border shadow-sm text-center py-5">
+                <i class="bi bi-emoji-neutral display-4 text-muted mb-3"></i>
+                <p class="mb-0 fs-5 text-muted">Şu anda satışta olan bir kitap bulunmamaktadır.</p>
             </div>
         </div>
         {% endfor %}
     </div>
 </div>
 
-{# --- TIKLANABİLİR KART İÇİN CSS --- #}
 <style>
     .card-link-wrapper {
-        color: inherit; /* Kartın içindeki metin renklerini bozmamak için */
-        display: block; /* Tüm alanı kaplaması için */
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        color: inherit;
+        display: block;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     .card-link-wrapper:hover {
-        transform: translateY(-5px); /* Hafifçe yukarı kalkma efekti */
-        text-decoration: none; /* Link alt çizgisini kaldırma */
+        transform: translateY(-8px);
+        text-decoration: none;
     }
     .card-link-wrapper:hover .card {
-        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; /* Vurguyu artırmak için gölgeyi büyütme */
+        box-shadow: 0 1rem 2rem rgba(0,0,0,.1)!important;
+    }
+    .backdrop-blur {
+        backdrop-filter: blur(5px);
+    }
+    .transform-hover {
+        transition: transform 0.2s;
+    }
+    .transform-hover:hover {
+        transform: translateY(-3px);
     }
 </style>
 
-{# --- JAVASCRIPT KISMI (Orijinal haliyle korunuyor) --- #}
+{# --- JAVASCRIPT KISMI (Aynı kalacak) --- #}
 {% if indirim_aktif %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -111,7 +139,8 @@
                 if (distance < 0) {
                     clearInterval(countdownFunction);
                     timerElement.innerHTML = "SÜRE DOLDU";
-                     timerElement.closest('.alert').style.display = 'none'; 
+                    // Kartı tamamen gizlemek yerine süresi doldu mesajı gösterebiliriz
+                    // timerElement.closest('.card').style.display = 'none'; 
                     return;
                 }
 
@@ -119,11 +148,10 @@
                 var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                 var seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-                timerElement.innerHTML = hours + " saat " + minutes + " dakika " + seconds + " saniye ";
+                timerElement.innerHTML = hours + "s " + minutes + "dk " + seconds + "sn";
             }, 1000);
         }
     });
 </script>
 {% endif %}
-{# --- JAVASCRIPT KISMININ SONU --- #}
 {% endblock %}
