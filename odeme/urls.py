@@ -1,5 +1,3 @@
-# odeme/urls.py
-
 from django.urls import path
 from . import views
 
@@ -15,11 +13,11 @@ urlpatterns = [
     # --- ÖDEME ---
     path('odeme-yap/', views.odeme_yap, name='odeme_yap'),
 
-    # --- KİTAP URL'LERİ ---
+    # --- KİTAP GÖRÜNTÜLEME ---
     path('kitap/<int:kitap_id>/', views.kitap_detay_view, name='kitap_detay'),
     path('kitaplar/', views.kitap_listesi, name='kitap_listesi'),
 
-    # --- STATİK SAYFALAR ---
+    # --- SÖZLEŞMELER ---
     path('satis-sozlesmesi/', views.satis_sozlesmesi, name='satis_sozlesmesi'),
     path('teslimat-ve-iade-sartlari/', views.teslimat_iade_sartlari, name='teslimat_iade'),
 ]

@@ -3,6 +3,7 @@
 from django import forms
 from .models import Siparis
 
+
 class SiparisForm(forms.ModelForm):
     sozlesme_onay = forms.BooleanField(
         required=True,

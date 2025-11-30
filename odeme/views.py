@@ -143,19 +143,3 @@ def satis_sozlesmesi(request):
 
 def teslimat_iade_sartlari(request):
     return render(request, 'odeme/teslimat_iade.html')
-
-
-def sinav_bilgilendirme(request):  # İsteğe bağlı kalabilir veya silinebilir
-    return render(request, 'odeme/sinav_bilgilendirme.html')
-
-
-def sinav_satin_al(request):  # Yönlendirme veya 404
-    return redirect('anasayfa')
-
-
-def kayit_basarili(request):
-    return render(request, 'odeme/kayit_basarili.html')
-
-
-def kayit_mevcut(request):
-    return render(request, 'odeme/kayit_mevcut.html')
