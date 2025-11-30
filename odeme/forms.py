@@ -1,33 +1,21 @@
 # odeme/forms.py
 
 from django import forms
-from .models import SinavSiparisi, PaketSiparisi, KitapSiparisi
+from .models import Siparis
 
-
-# Mevcut Sınav Sipariş Formu (eğer kullanıyorsanız)
 class SiparisForm(forms.ModelForm):
-    sozlesme_onay = forms.BooleanField(required=True, label='')
-    teslimat_ve_iade_onay = forms.BooleanField(required=True, label='')
+    sozlesme_onay = forms.BooleanField(
+        required=True,
+        label="Satış Sözleşmesi'ni okudum ve kabul ediyorum."
+    )
+    teslimat_ve_iade_onay = forms.BooleanField(
+        required=True,
+        label="Teslimat ve İade Şartları'nı okudum ve kabul ediyorum."
+    )
 
     class Meta:
-        model = SinavSiparisi
+        model = Siparis
         fields = ['ad', 'soyad', 'email', 'telefon', 'adres']
-
-
-# Yeni Paket Sipariş Formu
-class PaketSiparisForm(forms.ModelForm):
-    sozlesme_onay = forms.BooleanField(required=True, label='')
-    teslimat_ve_iade_onay = forms.BooleanField(required=True, label='')
-
-    class Meta:
-        model = PaketSiparisi
-        fields = ['ad', 'soyad', 'email', 'telefon', 'adres']
-
-
-class KitapSiparisForm(forms.ModelForm):
-    sozlesme_onay = forms.BooleanField(required=True, label='')
-    teslimat_ve_iade_onay = forms.BooleanField(required=True, label='')
-
-    class Meta:
-        model = KitapSiparisi
-        fields = ['ad', 'soyad', 'email', 'telefon', 'adres']
+        widgets = {
+            'adres': forms.Textarea(attrs={'rows': 3}),
+        }

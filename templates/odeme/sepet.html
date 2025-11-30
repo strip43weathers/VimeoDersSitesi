@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4 fw-bold"><i class="bi bi-cart3 me-2"></i>Alışveriş Sepetim</h2>
+    
+    {% if sepet.items.exists %}
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    {% for item in sepet.items.all %}
+                    <div class="row align-items-center mb-3 pb-3 border-bottom">
+                        <div class="col-md-2 col-4">
+                            {% if item.kitap.fotograf %}
+                            <img src="{{ item.kitap.fotograf.url }}" class="img-fluid rounded" alt="{{ item.kitap.baslik }}">
+                            {% else %}
+                            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 80px;">
+                                <i class="bi bi-book text-muted fs-4"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 col-8">
+                            <h5 class="fw-bold mb-1">{{ item.kitap.baslik }}</h5>
+                            <p class="text-muted small mb-0">Birim Fiyat: {{ item.kitap.fiyat }} TL</p>
+                        </div>
+                        <div class="col-md-3 col-6 mt-3 mt-md-0 d-flex align-items-center">
+                            <a href="{% url 'odeme:sepet_adet_guncelle' item.id 'azalt' %}" class="btn btn-sm btn-outline-secondary rounded-circle"><i class="bi bi-dash"></i></a>
+                            <span class="mx-3 fw-bold">{{ item.adet }}</span>
+                            <a href="{% url 'odeme:sepet_adet_guncelle' item.id 'arttir' %}" class="btn btn-sm btn-outline-secondary rounded-circle"><i class="bi bi-plus"></i></a>
+                        </div>
+                        <div class="col-md-2 col-4 mt-3 mt-md-0 text-end">
+                            <span class="fw-bold text-success">{{ item.toplam_fiyat }} TL</span>
+                        </div>
+                        <div class="col-md-1 col-2 mt-3 mt-md-0 text-end">
+                            <a href="{% url 'odeme:sepetten_cikar' item.id %}" class="text-danger"><i class="bi bi-trash-fill"></i></a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow rounded-4 bg-light">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold mb-3">Sipariş Özeti</h4>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Ara Toplam</span>
+                        <span>{{ sepet.toplam_tutar }} TL</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-4">
+                        <strong class="fs-5">Toplam</strong>
+                        <strong class="fs-5 text-primary">{{ sepet.toplam_tutar }} TL</strong>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'odeme:odeme_yap' %}" class="btn btn-success btn-lg rounded-pill fw-bold">
+                            Siparişi Tamamla <i class="bi bi-arrow-right"></i>
+                        </a>
+                        <a href="{% url 'odeme:kitap_listesi' %}" class="btn btn-outline-primary rounded-pill">Alışverişe Devam Et</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-cart-x display-1 text-muted mb-3"></i>
+        <h3>Sepetinizde ürün bulunmamaktadır.</h3>
+        <a href="{% url 'odeme:kitap_listesi' %}" class="btn btn-primary mt-3 rounded-pill px-4">Kitapları İncele</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

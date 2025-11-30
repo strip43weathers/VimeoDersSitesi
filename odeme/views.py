@@ -2,279 +2,160 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Sinav, SinavSiparisi, EgitimPaketi, PaketSiparisi, Kitap, KitapSiparisi
-from .forms import SiparisForm, PaketSiparisForm, KitapSiparisForm
 from django.contrib import messages
-from django.utils import timezone
-import datetime
+from .models import Kitap, Sepet, SepetUrunu, Siparis, SiparisUrunu
+from .forms import SiparisForm
 from kullanicilar.models import Profil
 from decimal import Decimal
+import uuid
 
-# --- MEVCUT SINAV VIEW'LARI ---
 
-def sinav_bilgilendirme(request):
-    return render(request, 'odeme/sinav_bilgilendirme.html')
+# --- SEPET YARDIMCI FONKSİYONLARI ---
+
+def _get_sepet(request):
+    if request.user.is_authenticated:
+        sepet, created = Sepet.objects.get_or_create(user=request.user)
+    else:
+        session_key = request.session.session_key
+        if not session_key:
+            request.session.create()
+            session_key = request.session.session_key
+        sepet, created = Sepet.objects.get_or_create(session_key=session_key, user__isnull=True)
+    return sepet
+
+
+# --- VIEW'LAR ---
+
+def sepeti_goruntule(request):
+    sepet = _get_sepet(request)
+    return render(request, 'odeme/sepet.html', {'sepet': sepet})
+
+
+def sepete_ekle(request, kitap_id):
+    kitap = get_object_or_404(Kitap, id=kitap_id)
+    sepet = _get_sepet(request)
+
+    sepet_urunu, created = SepetUrunu.objects.get_or_create(sepet=sepet, kitap=kitap)
+    if not created:
+        sepet_urunu.adet += 1
+        sepet_urunu.save()
+        messages.success(request, f'"{kitap.baslik}" sepetinizdeki miktarı güncellendi.')
+    else:
+        messages.success(request, f'"{kitap.baslik}" sepetinize eklendi.')
+
+    return redirect('odeme:sepeti_goruntule')
+
+
+def sepetten_cikar(request, urun_id):
+    sepet = _get_sepet(request)
+    urun = get_object_or_404(SepetUrunu, id=urun_id, sepet=sepet)
+    urun.delete()
+    messages.info(request, 'Ürün sepetten çıkarıldı.')
+    return redirect('odeme:sepeti_goruntule')
+
+
+def sepet_adet_guncelle(request, urun_id, islem):
+    sepet = _get_sepet(request)
+    urun = get_object_or_404(SepetUrunu, id=urun_id, sepet=sepet)
+
+    if islem == 'arttir':
+        urun.adet += 1
+        urun.save()
+    elif islem == 'azalt':
+        if urun.adet > 1:
+            urun.adet -= 1
+            urun.save()
+        else:
+            urun.delete()
+
+    return redirect('odeme:sepeti_goruntule')
+
 
 @login_required
-def sinav_satin_al(request):
-    mevcut_siparis = SinavSiparisi.objects.filter(user=request.user, odeme_tamamlandi=True).first()
-    if mevcut_siparis:
-        return redirect('odeme:kayit_mevcut')
+def odeme_yap(request):
+    sepet = _get_sepet(request)
+    if not sepet.items.exists():
+        messages.warning(request, 'Sepetiniz boş.')
+        return redirect('odeme:kitap_listesi')
 
-    sinav, created = Sinav.objects.get_or_create(id=1)
     if request.method == 'POST':
         form = SiparisForm(request.POST)
         if form.is_valid():
-            payment_is_successful = True
-            if payment_is_successful:
-                siparis = form.save(commit=False)
-                siparis.user = request.user
-                siparis.sinav = sinav
-                siparis.odeme_tamamlandi = True
-                siparis.save()
-                return redirect('odeme:kayit_basarili') # Sınav için doğru yönlendirme
-            else:
-                messages.error(request, 'Ödeme sırasında bir hata oluştu.')
-                return redirect('odeme:sinav_satin_al')
+            # Sipariş Oluştur
+            siparis = form.save(commit=False)
+            siparis.user = request.user
+            siparis.toplam_tutar = sepet.toplam_tutar
+            siparis.save()
+
+            # Sepet Ürünlerini Sipariş Ürünlerine Dönüştür
+            for item in sepet.items.all():
+                SiparisUrunu.objects.create(
+                    siparis=siparis,
+                    kitap=item.kitap,
+                    fiyat=item.kitap.fiyat,
+                    adet=item.adet
+                )
+
+            # Sepeti Temizle
+            sepet.items.all().delete()
+
+            messages.success(request, 'Siparişiniz başarıyla alındı!')
+            return redirect('kullanicilar:hesabim')  # Siparişlerim sayfasına yönlendir
     else:
-        form = SiparisForm()
-    return render(request, 'odeme/sinav_satin_al.html', {'sinav': sinav, 'form': form})
-
-@login_required
-def kayit_basarili(request):
-    return render(request, 'odeme/kayit_basarili.html')
-
-@login_required
-def kayit_mevcut(request):
-    return render(request, 'odeme/kayit_mevcut.html')
-
-def satis_sozlesmesi(request):
-    return render(request, 'odeme/satis_sozlesmesi.html')
-
-
-# --- YENİ EĞİTİM PAKETİ VIEW'LARI ---
-
-def paket_listesi(request):
-    paketler = EgitimPaketi.objects.all()
-    indirim_aktif = False
-    indirim_bitis_tarihi = None
-    indirim_uygula = False
-
-    if request.user.is_authenticated:
-        try:
-            profil = Profil.objects.get(user=request.user)
-            kayit_suresi = timezone.now() - profil.kayit_tarihi
-            if kayit_suresi < datetime.timedelta(days=1):
-                indirim_aktif = True
-                indirim_uygula = True
-                indirim_bitis_tarihi = profil.kayit_tarihi + datetime.timedelta(days=1)
-        except Profil.DoesNotExist:
-            pass
-    else:  # Kullanıcı giriş yapmamışsa indirimi uygula
-        indirim_uygula = True
-
-    if indirim_uygula:
-        for paket in paketler:
-            paket.indirimli_fiyat = (paket.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
-
-    context = {
-        'paketler': paketler,
-        'indirim_aktif': indirim_aktif,
-        'indirim_bitis_tarihi': indirim_bitis_tarihi.isoformat() if indirim_bitis_tarihi else None
-    }
-    return render(request, 'odeme/paket_listesi.html', context)
-
-
-@login_required
-def paket_satin_al(request, paket_id):
-    paket = get_object_or_404(EgitimPaketi, id=paket_id)
-    mevcut_siparis = PaketSiparisi.objects.filter(user=request.user, paket=paket, odeme_tamamlandi=True).first()
-    if mevcut_siparis:
-        messages.info(request, f'"{paket.baslik}" paketine zaten sahipsiniz.')
-        return redirect('odeme:paket_kayit_mevcut')
-
-    indirimli_fiyat = None
-    try:
-        profil = Profil.objects.get(user=request.user)
-        if timezone.now() - profil.kayit_tarihi < datetime.timedelta(days=1):
-            indirimli_fiyat = (paket.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
-    except Profil.DoesNotExist:
-        pass
-
-    if request.method == 'POST':
-        form = PaketSiparisForm(request.POST)
-        if form.is_valid():
-            payment_is_successful = True
-            if payment_is_successful:
-                siparis = form.save(commit=False)
-                siparis.user = request.user
-                siparis.paket = paket
-                siparis.odeme_tamamlandi = True
-                siparis.save()
-                return redirect('odeme:paket_kayit_basarili')
-            else:
-                messages.error(request, 'Ödeme sırasında bir hata oluştu.')
-    else:
-        form = PaketSiparisForm()
-
-    context = {
-        'paket': paket,
-        'form': form,
-        'indirimli_fiyat': indirimli_fiyat
-    }
-    return render(request, 'odeme/paket_satin_al.html', context)
-
-
-@login_required
-def paket_kayit_basarili(request):
-    return render(request, 'odeme/paket_kayit_basarili.html')
-
-
-@login_required
-def paket_kayit_mevcut(request):
-    return render(request, 'odeme/paket_kayit_mevcut.html')
-
-
-def kitap_listesi(request):
-    kitaplar = Kitap.objects.all()
-    indirim_aktif = False
-    indirim_bitis_tarihi = None
-    indirim_uygula = False
-
-    if request.user.is_authenticated:
-        try:
-            profil = Profil.objects.get(user=request.user)
-            kayit_suresi = timezone.now() - profil.kayit_tarihi
-            if kayit_suresi < datetime.timedelta(days=1):
-                indirim_aktif = True
-                indirim_uygula = True
-                indirim_bitis_tarihi = profil.kayit_tarihi + datetime.timedelta(days=1)
-        except Profil.DoesNotExist:
-            pass
-    else:  # Kullanıcı giriş yapmamışsa indirimi uygula
-        indirim_uygula = True
-
-    if indirim_uygula:
-        for kitap in kitaplar:
-            kitap.indirimli_fiyat = (kitap.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
-
-    context = {
-        'kitaplar': kitaplar,
-        'indirim_aktif': indirim_aktif,
-        'indirim_bitis_tarihi': indirim_bitis_tarihi.isoformat() if indirim_bitis_tarihi else None
-    }
-    return render(request, 'odeme/kitap_listesi.html', context)
-
-
-@login_required
-def kitap_satin_al(request, kitap_id):
-    kitap = get_object_or_404(Kitap, id=kitap_id)
-    mevcut_siparis = KitapSiparisi.objects.filter(user=request.user, kitap=kitap, odeme_tamamlandi=True).first()
-    if mevcut_siparis:
-        messages.info(request, f'"{kitap.baslik}" adlı kitaba zaten sahipsiniz.')
-        return redirect('odeme:kitap_kayit_mevcut')
-
-    indirimli_fiyat = None
-    try:
-        profil = Profil.objects.get(user=request.user)
-        if timezone.now() - profil.kayit_tarihi < datetime.timedelta(days=1):
-            indirimli_fiyat = (kitap.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
-    except Profil.DoesNotExist:
-        pass
-
-    if request.method == 'POST':
-        form = KitapSiparisForm(request.POST)
-        if form.is_valid():
-            payment_is_successful = True
-            if payment_is_successful:
-                siparis = form.save(commit=False)
-                siparis.user = request.user
-                siparis.kitap = kitap
-                siparis.odeme_tamamlandi = True
-                siparis.save()
-                return redirect('odeme:kitap_kayit_basarili')
-            else:
-                messages.error(request, 'Ödeme sırasında bir hata oluştu.')
-    else:
-        form = KitapSiparisForm(initial={
+        initial_data = {
             'ad': request.user.first_name,
             'soyad': request.user.last_name,
             'email': request.user.email
-        })
+        }
+        # Eğer profilde telefon varsa onu da çekebiliriz
+        try:
+            if request.user.profil.telefon:
+                initial_data['telefon'] = request.user.profil.telefon
+        except:
+            pass
+
+        form = SiparisForm(initial=initial_data)
 
     context = {
-        'kitap': kitap,
         'form': form,
-        'indirimli_fiyat': indirimli_fiyat
+        'sepet': sepet
     }
-    return render(request, 'odeme/kitap_satin_al.html', context)
+    return render(request, 'odeme/odeme_sayfasi.html', context)
 
 
-@login_required
-def kitap_kayit_basarili(request):
-    return render(request, 'odeme/kitap_kayit_basarili.html')
+# --- MEVCUT KİTAP VIEW'LARI (Güncellendi) ---
 
-
-@login_required
-def kitap_kayit_mevcut(request):
-    return render(request, 'odeme/kitap_kayit_mevcut.html')
+def kitap_listesi(request):
+    kitaplar = Kitap.objects.all()
+    # İndirim mantığı istenirse buraya eklenebilir, şimdilik sade tutuyoruz
+    return render(request, 'odeme/kitap_listesi.html', {'kitaplar': kitaplar})
 
 
 def kitap_detay_view(request, kitap_id):
     kitap = get_object_or_404(Kitap, id=kitap_id)
-    indirim_aktif = False
-    indirim_bitis_tarihi = None
-    indirimli_fiyat = None
-
-    if request.user.is_authenticated:
-        try:
-            profil = Profil.objects.get(user=request.user)
-            kayit_suresi = timezone.now() - profil.kayit_tarihi
-            if kayit_suresi < datetime.timedelta(days=1):
-                indirim_aktif = True
-                indirim_bitis_tarihi = profil.kayit_tarihi + datetime.timedelta(days=1)
-                indirimli_fiyat = (kitap.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
-        except Profil.DoesNotExist:
-            pass
-    else:
-        indirimli_fiyat = (kitap.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
-
-    context = {
-        'kitap': kitap,
-        'indirim_aktif': indirim_aktif,
-        'indirim_bitis_tarihi': indirim_bitis_tarihi.isoformat() if indirim_bitis_tarihi else None,
-        'indirimli_fiyat': indirimli_fiyat
-    }
-    return render(request, 'odeme/kitap_detay.html', context)
+    return render(request, 'odeme/kitap_detay.html', {'kitap': kitap})
 
 
-def paket_detay_view(request, paket_id):
-    paket = get_object_or_404(EgitimPaketi, id=paket_id)
-    indirim_aktif = False
-    indirim_bitis_tarihi = None
-    indirimli_fiyat = None
-
-    if request.user.is_authenticated:
-        try:
-            profil = Profil.objects.get(user=request.user)
-            kayit_suresi = timezone.now() - profil.kayit_tarihi
-            if kayit_suresi < datetime.timedelta(days=1):
-                indirim_aktif = True
-                indirim_bitis_tarihi = profil.kayit_tarihi + datetime.timedelta(days=1)
-                indirimli_fiyat = (paket.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
-        except Profil.DoesNotExist:
-            pass
-    else:
-        indirimli_fiyat = (paket.fiyat * Decimal('0.90')).quantize(Decimal("0.01"))
-
-    context = {
-        'paket': paket,
-        'indirim_aktif': indirim_aktif,
-        'indirim_bitis_tarihi': indirim_bitis_tarihi.isoformat() if indirim_bitis_tarihi else None,
-        'indirimli_fiyat': indirimli_fiyat
-    }
-    return render(request, 'odeme/paket_detay.html', context)
+# --- DİĞER ---
+def satis_sozlesmesi(request):
+    return render(request, 'odeme/satis_sozlesmesi.html')
 
 
 def teslimat_iade_sartlari(request):
     return render(request, 'odeme/teslimat_iade.html')
+
+
+def sinav_bilgilendirme(request):  # İsteğe bağlı kalabilir veya silinebilir
+    return render(request, 'odeme/sinav_bilgilendirme.html')
+
+
+def sinav_satin_al(request):  # Yönlendirme veya 404
+    return redirect('anasayfa')
+
+
+def kayit_basarili(request):
+    return render(request, 'odeme/kayit_basarili.html')
+
+
+def kayit_mevcut(request):
+    return render(request, 'odeme/kayit_mevcut.html')

@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* MODERN FORM TASARIMI */
+    .gradient-header {
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+        border-bottom: 0;
+    }
+    .form-field-group {
+        position: relative;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+    }
+    .form-field-group:focus-within {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+    }
+    .form-field-icon {
+        position: absolute;
+        top: 50%;
+        left: 1.2rem;
+        transform: translateY(-50%);
+        color: #adb5bd;
+        transition: color 0.2s;
+    }
+    .form-field-group:focus-within .form-field-icon {
+        color: #0d6efd;
+    }
+    .form-field-group input,
+    .form-field-group textarea {
+        display: block;
+        width: 100%;
+        padding: 0.8rem 1rem 0.8rem 3rem;
+        background-color: transparent;
+        border: none;
+        outline: none;
+        color: #212529;
+        border-radius: 0.5rem;
+    }
+    .security-notice {
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-left: 4px solid #198754;
+    }
+    .btn-submit-custom {
+        background: linear-gradient(to right, #198754, #146c43);
+        border: none;
+        padding: 1rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-submit-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(25, 135, 84, 0.2);
+    }
+</style>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-xl-10 col-lg-12">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                
+                <div class="card-header gradient-header text-white text-center py-4">
+                    <h2 class="h3 mb-0 fw-bold"><i class="bi bi-credit-card-2-front me-2"></i>Siparişi Tamamla</h2>
+                    <p class="mb-0 opacity-75 small">Adres bilgilerinizi girin ve ödemeyi tamamlayın</p>
+                </div>
+
+                <div class="card-body p-4 p-lg-5">
+                    <div class="row g-5">
+
+                        <div class="col-md-5 order-md-2">
+                            <h4 class="fw-bold mb-4 text-primary">Sepet Özeti</h4>
+                            
+                            <div class="card border-0 shadow-sm rounded-4 bg-light overflow-hidden mb-4">
+                                <div class="card-body p-4">
+                                    <ul class="list-group list-group-flush bg-transparent">
+                                        {% for item in sepet.items.all %}
+                                        <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">
+                                            <div>
+                                                <h6 class="my-0 fw-bold">{{ item.kitap.baslik }}</h6>
+                                                <small class="text-muted">{{ item.adet }} adet x {{ item.kitap.fiyat }} TL</small>
+                                            </div>
+                                            <span class="text-success fw-bold">{{ item.toplam_fiyat }} TL</span>
+                                        </li>
+                                        {% endfor %}
+                                        
+                                        <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 pt-3 border-top border-2">
+                                            <span class="fs-5">Toplam Tutar</span>
+                                            <strong class="fs-4 text-primary">{{ sepet.toplam_tutar }} TL</strong>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="security-notice d-flex align-items-start gap-3 p-3 rounded-3">
+                                <div class="text-success fs-3">
+                                    <i class="bi bi-shield-lock-fill"></i>
+                                </div>
+                                <div>
+                                    <strong class="d-block text-dark mb-1">Güvenli Ödeme</strong>
+                                    <small class="d-block text-muted lh-sm">Ödemeleriniz 256-bit SSL şifreleme ve iyzico altyapısı ile %100 güvence altındadır.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-7 order-md-1">
+                            <h4 class="fw-bold mb-4 text-dark">Teslimat Bilgileri</h4>
+                            <form method="post" class="needs-validation" novalidate>
+                                {% csrf_token %}
+                                {% if form.non_field_errors %}
+                                    <div class="alert alert-danger rounded-3 shadow-sm border-0 mb-4">
+                                        <i class="bi bi-exclamation-circle me-2"></i>{{ form.non_field_errors }}
+                                    </div>
+                                {% endif %}
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ form.ad.id_for_label }}" class="form-label text-muted small fw-bold ms-1">ADINIZ</label>
+                                        <div class="form-field-group">
+                                            <i class="bi bi-person form-field-icon"></i>
+                                            {{ form.ad }}
+                                        </div>
+                                        {% for error in form.ad.errors %}<div class="text-danger small mt-1 ms-1">{{ error }}</div>{% endfor %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.soyad.id_for_label }}" class="form-label text-muted small fw-bold ms-1">SOYADINIZ</label>
+                                        <div class="form-field-group">
+                                            <i class="bi bi-person form-field-icon"></i>
+                                            {{ form.soyad }}
+                                        </div>
+                                        {% for error in form.soyad.errors %}<div class="text-danger small mt-1 ms-1">{{ error }}</div>{% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="mt-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label text-muted small fw-bold ms-1">E-POSTA ADRESİNİZ</label>
+                                    <div class="form-field-group">
+                                        <i class="bi bi-envelope form-field-icon"></i>
+                                        {{ form.email }}
+                                    </div>
+                                    {% for error in form.email.errors %}<div class="text-danger small mt-1 ms-1">{{ error }}</div>{% endfor %}
+                                </div>
+
+                                <div class="mt-3">
+                                    <label for="{{ form.telefon.id_for_label }}" class="form-label text-muted small fw-bold ms-1">TELEFON NUMARANIZ</label>
+                                    <div class="form-field-group">
+                                        <i class="bi bi-telephone form-field-icon"></i>
+                                        {{ form.telefon }}
+                                    </div>
+                                    {% for error in form.telefon.errors %}<div class="text-danger small mt-1 ms-1">{{ error }}</div>{% endfor %}
+                                </div>
+
+                                <div class="mt-3">
+                                    <label for="{{ form.adres.id_for_label }}" class="form-label text-muted small fw-bold ms-1">TESLİMAT ADRESİ</label>
+                                    <div class="form-field-group">
+                                        <i class="bi bi-geo-alt form-field-icon"></i>
+                                        {{ form.adres }}
+                                    </div>
+                                    {% for error in form.adres.errors %}<div class="text-danger small mt-1 ms-1">{{ error }}</div>{% endfor %}
+                                </div>
+
+                                <div class="agreements mt-4 p-3 bg-light rounded-3 border-start border-4 border-info">
+                                    <div class="form-check mb-2">
+                                        {{ form.sozlesme_onay }}
+                                        <label class="form-check-label small" for="{{ form.sozlesme_onay.id_for_label }}">
+                                            <a href="{% url 'odeme:satis_sozlesmesi' %}" target="_blank">Mesafeli Satış Sözleşmesini</a> okudum ve kabul ediyorum.
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        {{ form.teslimat_ve_iade_onay }}
+                                        <label class="form-check-label small" for="{{ form.teslimat_ve_iade_onay.id_for_label }}">
+                                            <a href="{% url 'odeme:teslimat_iade' %}" target="_blank">Teslimat ve İade Şartlarını</a> okudum ve kabul ediyorum.
+                                        </label>
+                                    </div>
+                                    {% if form.sozlesme_onay.errors or form.teslimat_ve_iade_onay.errors %}
+                                        <div class="text-danger small mt-2">Lütfen sözleşmeleri onaylayınız.</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="payment-area mt-4 pt-2">
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-lg fw-bold text-white btn-submit-custom rounded-pill">
+                                            <span class="d-flex align-items-center justify-content-center">
+                                                <span>Siparişi Tamamla</span>
+                                                <i class="bi bi-check-circle-fill ms-2"></i>
+                                            </span>
+                                        </button>
+                                    </div>
+                                    <div class="text-center mt-3 opacity-50">
+                                        <img src="{% static 'images/iyzico_ile_ode_colored_horizontal.png' %}" alt="iyzico ile Güvenli Ödeme" class="img-fluid" style="max-width: 140px;">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

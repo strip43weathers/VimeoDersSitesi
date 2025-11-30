@@ -4,6 +4,8 @@ from .forms import KayitFormu
 from .models import Profil
 from django.contrib import messages
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from odeme.models import Siparis
 
 
 def kayit_view(request):
@@ -19,3 +21,9 @@ def kayit_view(request):
     else:
         form = KayitFormu()
     return render(request, 'registration/kayit.html', {'form': form})
+
+
+@login_required
+def hesabim_view(request):
+    siparisler = Siparis.objects.filter(user=request.user).order_by('-tarih')
+    return render(request, 'kullanicilar/hesabim.html', {'siparisler': siparisler})

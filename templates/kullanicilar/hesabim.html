@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-4">
+                <div class="mb-3">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2rem;">
+                        {{ user.username.0|upper }}
+                    </div>
+                </div>
+                <h4 class="fw-bold">{{ user.first_name }} {{ user.last_name }}</h4>
+                <p class="text-muted">{{ user.email }}</p>
+                <hr>
+                <div class="d-grid gap-2">
+                    {# İleride profil düzenleme linki eklenebilir #}
+                    <a href="{% url 'logout' %}" class="btn btn-outline-danger rounded-pill">Çıkış Yap</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <h3 class="fw-bold mb-4">Sipariş Geçmişim</h3>
+            {% if siparisler %}
+                {% for siparis in siparisler %}
+                <div class="card border-0 shadow-sm rounded-4 mb-3 overflow-hidden">
+                    <div class="card-header bg-white border-bottom-0 pt-3 px-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted d-block">Sipariş Tarihi</small>
+                            <strong>{{ siparis.tarih|date:"d F Y H:i" }}</strong>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge rounded-pill px-3 py-2 
+                                {% if siparis.durum == 'hazirlaniyor' %}bg-warning text-dark
+                                {% elif siparis.durum == 'kargoya_verildi' %}bg-info text-white
+                                {% elif siparis.durum == 'tamamlandi' %}bg-success
+                                {% else %}bg-secondary{% endif %}">
+                                {{ siparis.get_durum_display }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body px-4">
+                        <div class="row">
+                            <div class="col-md-8">
+                                {% for item in siparis.items.all %}
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-book me-2 text-primary"></i>
+                                        <span>{{ item.adet }}x {{ item.kitap.baslik }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-4 text-md-end mt-3 mt-md-0 border-start-md">
+                                <small class="text-muted">Toplam Tutar</small>
+                                <h4 class="text-primary fw-bold">{{ siparis.toplam_tutar }} TL</h4>
+                                {% if siparis.kargo_takip_no %}
+                                    <div class="mt-2 p-2 bg-light rounded border border-success">
+                                        <small class="d-block text-success fw-bold">Kargo Takip No:</small>
+                                        <span class="font-monospace">{{ siparis.kargo_takip_no }}</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info rounded-4">
+                    <i class="bi bi-info-circle me-2"></i>Henüz bir siparişiniz bulunmamaktadır.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
