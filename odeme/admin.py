@@ -1,7 +1,7 @@
 # odeme/admin.py
 
 from django.contrib import admin
-from .models import Kitap, EgitimPaketi, Sepet, SepetUrunu, Siparis, SiparisUrunu
+from .models import Kitap, Sepet, SepetUrunu, Siparis, SiparisUrunu
 
 # --- SEPET ADMIN ---
 class SepetUrunuInline(admin.TabularInline):
@@ -30,6 +30,6 @@ class SiparisAdmin(admin.ModelAdmin):
     readonly_fields = ('tarih', 'toplam_tutar')
     list_editable = ('durum',) # Durumu liste üzerinden hızlıca değiştirebilmek için
 
+
 # --- DİĞER ---
 admin.site.register(Kitap)
-admin.site.register(EgitimPaketi)

@@ -16,18 +16,6 @@ class Kitap(models.Model):
         return self.baslik
 
 
-# Paket modelini şimdilik sadece "ürün" olarak tutuyoruz, siparişini kaldırdık.
-class EgitimPaketi(models.Model):
-    baslik = models.CharField(max_length=200, verbose_name="Paket Başlığı")
-    aciklama = models.TextField(verbose_name="Açıklama", blank=True, null=True)
-    fiyat = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Fiyat (TL)")
-    fotograf = models.ImageField(upload_to='egitim_paketi_kapaklari/', blank=True, null=True,
-                                 verbose_name="Paket Kapağı")
-
-    def __str__(self):
-        return self.baslik
-
-
 # --- SEPET SİSTEMİ (YENİ) ---
 
 class Sepet(models.Model):

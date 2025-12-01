@@ -23,8 +23,8 @@
         </div>
     </div>
 
-    {# DURUM 2: Giriş Yapmış Ama Yetkisi Yoksa (Paket yok, Özel Erişim yok) #}
-    {% elif not kullanici_paket_sahibi_mi and not ozel_erisim_var %}
+    {# DURUM 2: Giriş Yapmış Ama Yetkisi Yoksa - Model üzerinden kontrol ediyoruz #}
+    {% elif not user.profil.erisim_izni_var_mi %}
     <div class="card border-0 shadow rounded-4 mb-5 overflow-hidden bg-white">
         <div class="card-body p-5 text-center">
             <div class="mb-4">
@@ -78,9 +78,9 @@
         {% endfor %}
     </div>
 
-    {# Yetkili Kullanıcılar İçin Buton #}
+    {# Yetkili Kullanıcılar İçin Buton - Model üzerinden kontrol #}
     {% if user.is_authenticated %}
-        {% if kullanici_paket_sahibi_mi or ozel_erisim_var %}
+        {% if user.profil.erisim_izni_var_mi %}
             <div class="text-center mt-5 mb-5">
                 <a href="{% url 'oyunlar:ozel_oyun_listesi' %}" class="btn btn-warning btn-lg px-5 py-3 rounded-pill shadow fw-bold text-dark transform-hover">
                     <i class="bi bi-gem me-2"></i> ⭐ Üyelere Özel Oyunları Gör ⭐

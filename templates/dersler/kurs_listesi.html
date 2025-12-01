@@ -6,8 +6,8 @@
 <div class="container mt-5">
     <h1 class="mb-4">Tüm Kurslar</h1>
 
-    {# Sadece yetkisi olmayan (paketi yok, eski değil, özel izni yok) kullanıcılara göster #}
-    {% if user.is_authenticated and not kullanici_paket_sahibi_mi and not is_eski_kullanici and not ozel_erisim_var %}
+    {# GÜNCELLEME: Karmaşık if yapısı yerine sadeleştirilmiş 'erisim_var' kontrolü #}
+    {% if user.is_authenticated and not erisim_var %}
     <div class="card border-0 shadow rounded-4 mb-5 overflow-hidden bg-white">
         <div class="card-body p-5 text-center">
             <div class="mb-4">
