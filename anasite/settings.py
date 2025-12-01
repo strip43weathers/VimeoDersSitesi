@@ -31,7 +31,6 @@ INSTALLED_APPS = [
     'sayfalar',
     'ckeditor',
     'blog',
-    #     'kitapkayit',
     'odeme',
 ]
 
@@ -126,5 +125,3 @@ if not DEBUG:
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"

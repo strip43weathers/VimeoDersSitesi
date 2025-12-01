@@ -3,7 +3,6 @@ from django.shortcuts import render, redirect
 from .forms import KayitFormu
 from .models import Profil
 from django.contrib import messages
-from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from odeme.models import Siparis
 
@@ -13,10 +12,18 @@ def kayit_view(request):
         form = KayitFormu(request.POST)
         if form.is_valid():
             user = form.save()
-            telefon = form.cleaned_data.get('telefon')
-            Profil.objects.create(user=user, telefon=telefon, onaylandi=True, kayit_tarihi=timezone.now())
-            messages.success(request, 'Tebrikler başarıyla kaydoldunuz.')
+            # Kullanıcı kaydedildiği anda signals.py devreye girer ve boş bir Profil oluşturur.
 
+            # Formdan gelen telefon bilgisini alıp profile ekleyelim:
+            telefon = form.cleaned_data.get('telefon')
+
+            # Profil nesnesine erişip güncelliyoruz
+            if hasattr(user, 'profil'):
+                user.profil.telefon = telefon
+                user.profil.onaylandi = True  # Kayıt olan kullanıcıları otomatik onaylı sayıyoruz
+                user.profil.save()
+
+            messages.success(request, 'Tebrikler başarıyla kaydoldunuz.')
             return redirect('login')
     else:
         form = KayitFormu()
