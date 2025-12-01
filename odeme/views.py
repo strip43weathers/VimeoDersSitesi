@@ -8,9 +8,11 @@ from .forms import SiparisForm
 from kullanicilar.models import Profil
 from decimal import Decimal
 import uuid
+from django.utils import timezone
+from datetime import timedelta
 
 
-# --- SEPET YARDIMCI FONKSİYONLARI ---
+# --- YARDIMCI FONKSİYONLAR ---
 
 def _get_sepet(request):
     if request.user.is_authenticated:
@@ -24,11 +26,53 @@ def _get_sepet(request):
     return sepet
 
 
-# --- VIEW'LAR ---
+def get_indirim_durumu(user):
+    """
+    Kullanıcı varsa ve kayıt tarihinden itibaren 24 saat geçmemişse
+    indirim aktif döner.
+    """
+    if not user.is_authenticated:
+        return False, None
+
+    try:
+        # Profil modelinizde kayit_tarihi olduğunu varsayıyoruz
+        kayit_tarihi = user.profil.kayit_tarihi
+        simdi = timezone.now()
+        bitis_tarihi = kayit_tarihi + timedelta(hours=24)
+
+        if simdi < bitis_tarihi:
+            # ISO formatında string olarak döndürüyoruz (JS için)
+            return True, bitis_tarihi.isoformat()
+    except Exception as e:
+        pass
+
+    return False, None
+
+
+# --- SEPET İŞLEMLERİ ---
 
 def sepeti_goruntule(request):
     sepet = _get_sepet(request)
-    return render(request, 'odeme/sepet.html', {'sepet': sepet})
+
+    # İndirim Kontrolü
+    indirim_aktif, indirim_bitis = get_indirim_durumu(request.user)
+
+    # Sepet toplamını hesapla
+    toplam_tutar = sepet.toplam_tutar
+
+    # Eğer indirim aktifse ve sepet boş değilse tutarı güncelle
+    if indirim_aktif and toplam_tutar > 0:
+        toplam_tutar = round(toplam_tutar * Decimal('0.90'), 2)
+
+    # Sepet objesine geçici olarak indirimli tutarı atıyoruz (DB'ye kaydetmeden, sadece gösterim için)
+    sepet.gosterilecek_tutar = toplam_tutar
+
+    context = {
+        'sepet': sepet,
+        'indirim_aktif': indirim_aktif,
+        'indirim_bitis_tarihi': indirim_bitis
+    }
+    return render(request, 'odeme/sepet.html', context)
 
 
 def sepete_ekle(request, kitap_id):
@@ -71,6 +115,8 @@ def sepet_adet_guncelle(request, urun_id, islem):
     return redirect('odeme:sepeti_goruntule')
 
 
+# --- ÖDEME VE SİPARİŞ ---
+
 @login_required
 def odeme_yap(request):
     sepet = _get_sepet(request)
@@ -78,21 +124,38 @@ def odeme_yap(request):
         messages.warning(request, 'Sepetiniz boş.')
         return redirect('odeme:kitap_listesi')
 
+    # İndirim Kontrolü
+    indirim_aktif, indirim_bitis = get_indirim_durumu(request.user)
+
+    # Ödenecek tutarı belirle
+    odenecek_tutar = sepet.toplam_tutar
+    if indirim_aktif:
+        odenecek_tutar = round(odenecek_tutar * Decimal('0.90'), 2)
+
+    # Sepet objesine template'de göstermek için atama yapıyoruz
+    sepet.gosterilecek_tutar = odenecek_tutar
+
     if request.method == 'POST':
         form = SiparisForm(request.POST)
         if form.is_valid():
             # Sipariş Oluştur
             siparis = form.save(commit=False)
             siparis.user = request.user
-            siparis.toplam_tutar = sepet.toplam_tutar
+            # İndirimli tutarı kaydediyoruz!
+            siparis.toplam_tutar = odenecek_tutar
             siparis.save()
 
             # Sepet Ürünlerini Sipariş Ürünlerine Dönüştür
             for item in sepet.items.all():
+                # Ürün bazlı fiyatı da indirimli kaydediyoruz
+                satis_fiyati = item.kitap.fiyat
+                if indirim_aktif:
+                    satis_fiyati = round(satis_fiyati * Decimal('0.90'), 2)
+
                 SiparisUrunu.objects.create(
                     siparis=siparis,
                     kitap=item.kitap,
-                    fiyat=item.kitap.fiyat,
+                    fiyat=satis_fiyati,
                     adet=item.adet
                 )
 
@@ -100,16 +163,15 @@ def odeme_yap(request):
             sepet.items.all().delete()
 
             messages.success(request, 'Siparişiniz başarıyla alındı!')
-            return redirect('kullanicilar:hesabim')  # Siparişlerim sayfasına yönlendir
+            return redirect('kullanicilar:hesabim')
     else:
         initial_data = {
             'ad': request.user.first_name,
             'soyad': request.user.last_name,
             'email': request.user.email
         }
-        # Eğer profilde telefon varsa onu da çekebiliriz
         try:
-            if request.user.profil.telefon:
+            if hasattr(request.user, 'profil') and request.user.profil.telefon:
                 initial_data['telefon'] = request.user.profil.telefon
         except:
             pass
@@ -118,25 +180,55 @@ def odeme_yap(request):
 
     context = {
         'form': form,
-        'sepet': sepet
+        'sepet': sepet,
+        'indirim_aktif': indirim_aktif,
+        'indirim_bitis_tarihi': indirim_bitis
     }
     return render(request, 'odeme/odeme_sayfasi.html', context)
 
 
-# --- MEVCUT KİTAP VIEW'LARI (Güncellendi) ---
+# --- KİTAP GÖRÜNTÜLEME ---
 
 def kitap_listesi(request):
     kitaplar = Kitap.objects.all()
-    # İndirim mantığı istenirse buraya eklenebilir, şimdilik sade tutuyoruz
-    return render(request, 'odeme/kitap_listesi.html', {'kitaplar': kitaplar})
+
+    # İndirim Kontrolü
+    indirim_aktif, indirim_bitis = get_indirim_durumu(request.user)
+
+    if indirim_aktif:
+        for kitap in kitaplar:
+            # %10 İndirim uygula (Geçici attribute)
+            kitap.indirimli_fiyat = round(kitap.fiyat * Decimal('0.90'), 2)
+
+    context = {
+        'kitaplar': kitaplar,
+        'indirim_aktif': indirim_aktif,
+        'indirim_bitis_tarihi': indirim_bitis
+    }
+    return render(request, 'odeme/kitap_listesi.html', context)
 
 
 def kitap_detay_view(request, kitap_id):
     kitap = get_object_or_404(Kitap, id=kitap_id)
-    return render(request, 'odeme/kitap_detay.html', {'kitap': kitap})
+
+    # İndirim Kontrolü
+    indirim_aktif, indirim_bitis = get_indirim_durumu(request.user)
+    indirimli_fiyat = None
+
+    if indirim_aktif:
+        indirimli_fiyat = round(kitap.fiyat * Decimal('0.90'), 2)
+
+    context = {
+        'kitap': kitap,
+        'indirim_aktif': indirim_aktif,
+        'indirim_bitis_tarihi': indirim_bitis,
+        'indirimli_fiyat': indirimli_fiyat
+    }
+    return render(request, 'odeme/kitap_detay.html', context)
 
 
-# --- DİĞER ---
+# --- STATİK SAYFALAR ---
+
 def satis_sozlesmesi(request):
     return render(request, 'odeme/satis_sozlesmesi.html')
 

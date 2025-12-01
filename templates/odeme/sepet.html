@@ -3,6 +3,26 @@
 
 {% block content %}
 <div class="container my-5">
+    
+    {# --- İNDİRİM SAYACI BAŞLANGIÇ --- #}
+    {% if indirim_aktif %}
+    <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center justify-content-between p-3" style="background: linear-gradient(135deg, #d1e7dd 0%, #badbcc 100%);">
+        <div class="d-flex align-items-center">
+            <div class="bg-white text-success rounded-circle p-2 me-3 shadow-sm">
+                <i class="bi bi-stopwatch-fill fs-4"></i>
+            </div>
+            <div>
+                <strong class="text-success-emphasis d-block">Hoş Geldin İndirimi Aktif!</strong>
+                <small class="text-success-emphasis">Sepet tutarına %10 indirim uygulandı.</small>
+            </div>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-success fs-6" id="countdown-timer">...</span>
+        </div>
+    </div>
+    {% endif %}
+    {# --- İNDİRİM SAYACI BİTİŞ --- #}
+
     <h2 class="mb-4 fw-bold"><i class="bi bi-cart3 me-2"></i>Alışveriş Sepetim</h2>
     
     {% if sepet.items.exists %}
@@ -45,15 +65,35 @@
             <div class="card border-0 shadow rounded-4 bg-light">
                 <div class="card-body p-4">
                     <h4 class="fw-bold mb-3">Sipariş Özeti</h4>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Ara Toplam</span>
-                        <span>{{ sepet.toplam_tutar }} TL</span>
-                    </div>
-                    <hr>
-                    <div class="d-flex justify-content-between mb-4">
-                        <strong class="fs-5">Toplam</strong>
-                        <strong class="fs-5 text-primary">{{ sepet.toplam_tutar }} TL</strong>
-                    </div>
+                    
+                    {# --- FİYAT ALANI GÜNCELLEMESİ --- #}
+                    {% if indirim_aktif %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Ara Toplam</span>
+                            <span class="text-decoration-line-through text-muted">{{ sepet.toplam_tutar }} TL</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 text-success">
+                            <span>Hoş Geldin İndirimi (%10)</span>
+                            <span>-Applied</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-4">
+                            <strong class="fs-5">Toplam</strong>
+                            <strong class="fs-4 text-success fw-bold">{{ sepet.gosterilecek_tutar }} TL</strong>
+                        </div>
+                    {% else %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Ara Toplam</span>
+                            <span>{{ sepet.toplam_tutar }} TL</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-4">
+                            <strong class="fs-5">Toplam</strong>
+                            <strong class="fs-5 text-primary">{{ sepet.toplam_tutar }} TL</strong>
+                        </div>
+                    {% endif %}
+                    {# --- FİYAT ALANI SONU --- #}
+
                     <div class="d-grid gap-2">
                         <a href="{% url 'odeme:odeme_yap' %}" class="btn btn-success btn-lg rounded-pill fw-bold">
                             Siparişi Tamamla <i class="bi bi-arrow-right"></i>
@@ -72,4 +112,34 @@
     </div>
     {% endif %}
 </div>
+
+{# --- SAYAÇ SCRİPTİ --- #}
+{% if indirim_aktif %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var countDownDate = new Date("{{ indirim_bitis_tarihi }}").getTime();
+        var timerElement = document.getElementById("countdown-timer");
+
+        if (timerElement) {
+            var countdownFunction = setInterval(function() {
+                var now = new Date().getTime();
+                var distance = countDownDate - now;
+
+                if (distance < 0) {
+                    clearInterval(countdownFunction);
+                    timerElement.innerHTML = "SÜRE DOLDU";
+                    location.reload(); // Süre dolunca sayfayı yenile
+                    return;
+                }
+
+                var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                timerElement.innerHTML = hours + "s " + minutes + "dk " + seconds + "sn";
+            }, 1000);
+        }
+    });
+</script>
+{% endif %}
 {% endblock %}

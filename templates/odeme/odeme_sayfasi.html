@@ -59,6 +59,57 @@
 </style>
 
 <div class="container my-5">
+    {# --- İNDİRİM SAYACI YENİ TASARIM --- #}
+    {% if indirim_aktif %}
+    <style>
+        @keyframes pulse-white {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); transform: scale(1); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); transform: scale(1.1); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); transform: scale(1); }
+        }
+        .timer-icon-box {
+            width: 50px; height: 50px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            animation: pulse-white 2s infinite;
+        }
+        .discount-timer-box {
+             /* BURASI DEĞİŞTİ: Turuncu yerine Yeşil Gradient */
+             background: linear-gradient(135deg, #198754 0%, #20c997 100%); 
+             color: white;
+             position: relative;
+             overflow: hidden;
+        }
+        /* Arka plana hafif bir desen ekleyelim */
+        .discount-timer-box::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px);
+            transform: rotate(30deg); opacity: 0.5; pointer-events: none;
+        }
+    </style>
+
+    <div class="alert discount-timer-box border-0 shadow-lg rounded-4 mb-4 p-3 p-md-4">
+        <div class="d-flex flex-column flex-md-row align-items-center justify-content-center position-relative z-1 text-center text-md-start gap-3">
+            
+            <div class="timer-icon-box flex-shrink-0 mb-2 mb-md-0">
+                <i class="bi bi-hourglass-split fs-3 text-white"></i>
+            </div>
+            
+            <div>
+                <h6 class="text-uppercase ls-1 mb-1 opacity-75 small fw-bold">Fırsatı Kaçırma!</h6>
+                <span class="fs-5">Özel indirim için kalan süre:</span>
+            </div>
+
+            <div class="bg-white bg-opacity-10 rounded-3 px-4 py-2 ms-md-auto shadow-sm backdrop-blur">
+                <strong id="countdown-timer" class="fs-2 fw-bold font-monospace" style="letter-spacing: 1px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">...</strong>
+            </div>
+
+        </div>
+    </div>
+    {% endif %}
+    {# --- İNDİRİM SAYACI BİTİŞ --- #}
+
     <div class="row justify-content-center">
         <div class="col-xl-10 col-lg-12">
             <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
@@ -89,7 +140,14 @@
                                         
                                         <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 pt-3 border-top border-2">
                                             <span class="fs-5">Toplam Tutar</span>
-                                            <strong class="fs-4 text-primary">{{ sepet.toplam_tutar }} TL</strong>
+                                            <div class="text-end">
+                                                {% if indirim_aktif %}
+                                                    <small class="d-block text-decoration-line-through text-muted">{{ sepet.toplam_tutar }} TL</small>
+                                                    <strong class="fs-4 text-success fw-bold">{{ sepet.gosterilecek_tutar }} TL</strong>
+                                                {% else %}
+                                                    <strong class="fs-4 text-primary">{{ sepet.toplam_tutar }} TL</strong>
+                                                {% endif %}
+                                            </div>
                                         </li>
                                     </ul>
                                 </div>
@@ -201,4 +259,30 @@
         </div>
     </div>
 </div>
+
+{# --- SAYAÇ SCRİPTİ --- #}
+{% if indirim_aktif %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var countDownDate = new Date("{{ indirim_bitis_tarihi }}").getTime();
+        var timerElement = document.getElementById("countdown-timer");
+        if (timerElement) {
+            var countdownFunction = setInterval(function() {
+                var now = new Date().getTime();
+                var distance = countDownDate - now;
+                if (distance < 0) {
+                    clearInterval(countdownFunction);
+                    timerElement.innerHTML = "SÜRE DOLDU";
+                    location.reload();
+                    return;
+                }
+                var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                timerElement.innerHTML = hours + ":" + minutes + ":" + seconds;
+            }, 1000);
+        }
+    });
+</script>
+{% endif %}
 {% endblock %}

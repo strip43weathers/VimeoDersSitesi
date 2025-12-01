@@ -15,7 +15,10 @@
                 <hr>
                 <div class="d-grid gap-2">
                     {# İleride profil düzenleme linki eklenebilir #}
-                    <a href="{% url 'logout' %}" class="btn btn-outline-danger rounded-pill">Çıkış Yap</a>
+                    <form action="{% url 'logout' %}" method="post" class="d-grid">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger rounded-pill">Çıkış Yap</button>
+                    </form>
                 </div>
             </div>
         </div>
