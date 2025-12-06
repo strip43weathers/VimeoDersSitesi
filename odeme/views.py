@@ -190,9 +190,28 @@ def odeme_yap(request):
 # --- KİTAP GÖRÜNTÜLEME ---
 
 def kitap_listesi(request):
+    # Sıralama parametresini al
+    siralama = request.GET.get('sirala')
+
+    # Tüm kitapları al
     kitaplar = Kitap.objects.all()
 
-    # İndirim Kontrolü
+    # Parametreye göre sıralama uygula
+    if siralama == 'fiyat_artan':
+        kitaplar = kitaplar.order_by('fiyat')
+    elif siralama == 'fiyat_azalan':
+        kitaplar = kitaplar.order_by('-fiyat')
+    elif siralama == 'isim_a_z':
+        kitaplar = kitaplar.order_by('baslik')
+    elif siralama == 'isim_z_a':
+        kitaplar = kitaplar.order_by('-baslik')
+    elif siralama == 'yeni':
+        kitaplar = kitaplar.order_by('-id')  # ID'si büyük olan en yenidir
+    else:
+        # Varsayılan sıralama (örneğin ID'ye göre veya modeldeki Meta class'ına göre)
+        kitaplar = kitaplar.order_by('id')
+
+    # İndirim Kontrolü (Mevcut kodunuz)
     indirim_aktif, indirim_bitis = get_indirim_durumu(request.user)
 
     if indirim_aktif:
@@ -203,7 +222,8 @@ def kitap_listesi(request):
     context = {
         'kitaplar': kitaplar,
         'indirim_aktif': indirim_aktif,
-        'indirim_bitis_tarihi': indirim_bitis
+        'indirim_bitis_tarihi': indirim_bitis,
+        'secili_siralama': siralama  # Dropdown'da seçili olanı hatırlamak için
     }
     return render(request, 'odeme/kitap_listesi.html', context)
 

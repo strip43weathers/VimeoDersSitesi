@@ -41,7 +41,8 @@
     {% endif %}
     {# --- İNDİRİM ALANI SONU --- #}
 
-    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    {# --- KİTAP DETAY KARTI --- #}
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5">
         <div class="row g-0">
             <div class="col-md-5 bg-light d-flex align-items-center justify-content-center p-4">
                 {% if kitap.fotograf %}
@@ -88,6 +89,54 @@
             </div>
         </div>
     </div>
+
+    {# --- PDF ÖNİZLEME ALANI (AKORDİYONLU) --- #}
+    {% if kitap.onizleme_dosyasi %}
+    <div class="row mt-4">
+        <div class="col-12">
+            
+            {# Açma/Kapama Butonu #}
+            <div class="d-grid gap-2">
+                <button class="btn btn-outline-primary btn-lg rounded-pill py-3 fw-bold shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#pdfOnizlemeAlani" aria-expanded="false" aria-controls="pdfOnizlemeAlani">
+                    <i class="fas fa-book-reader me-2"></i> Kitap Önizlemesini Görüntüle / Gizle
+                    <i class="fas fa-chevron-down ms-2"></i>
+                </button>
+            </div>
+
+            {# Gizli Alan (Collapse) #}
+            <div class="collapse mt-3" id="pdfOnizlemeAlani">
+                <div class="card border-0 shadow rounded-4 overflow-hidden">
+                    <div class="card-header bg-light border-bottom py-2 text-end">
+                        <a href="{{ kitap.onizleme_dosyasi.url }}" class="btn btn-sm btn-dark rounded-pill" target="_blank" download>
+                            <i class="fas fa-download me-1"></i> Dosyayı İndir
+                        </a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="ratio ratio-16x9" style="min-height: 80vh;">
+                            {# EMBED KULLANIMI (Firefox/Chrome uyumlu) #}
+                            <embed 
+                                src="{{ kitap.onizleme_dosyasi.url }}#toolbar=0" 
+                                type="application/pdf"
+                                width="100%" 
+                                height="100%" 
+                            />
+                        </div>
+                        
+                        {# Tarayıcı desteği yoksa yedek link #}
+                        <div class="text-center p-3 bg-light border-top">
+                            <small class="text-muted">
+                                Dosya açılmadı mı? 
+                                <a href="{{ kitap.onizleme_dosyasi.url }}" target="_blank" class="fw-bold text-primary">Yeni sekmede açmak için tıklayın.</a>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 
 {# --- JAVASCRIPT KISMI (Aynı) --- #}

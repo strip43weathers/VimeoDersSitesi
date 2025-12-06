@@ -11,6 +11,16 @@ class Kitap(models.Model):
     aciklama = models.TextField(verbose_name="Açıklama", blank=True, null=True)
     fiyat = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Fiyat (TL)")
     fotograf = models.ImageField(upload_to='kitap_kapaklari/', blank=True, null=True, verbose_name="Kitap Kapağı")
+    sira = models.IntegerField(default=0, verbose_name="Sıralama")
+    onizleme_dosyasi = models.FileField(
+        upload_to='kitap_onizlemeleri/',
+        blank=True,
+        null=True,
+        verbose_name="Önizleme Dosyası (PDF)"
+    )
+
+    class Meta:
+        ordering = ['sira']
 
     def __str__(self):
         return self.baslik
