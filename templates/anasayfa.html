@@ -22,49 +22,48 @@
         }
     </style>
 
-    <div class="hero-image-bg text-center mb-5">
-        <div class="container py-5">
-            <h1 class="display-4 fw-bold">Romingo Academy ile Romence'yi Keşfedin</h1>
-            <p class="lead my-4 col-md-10 mx-auto">
-                Profesyonel ekibimiz ve uzman öğretmenlerimiz eşliğinde, interaktif ve keyifli bir ders ortamında Romence öğrenin. Başlangıç seviyesinden ileri seviyeye, size özel bir öğrenme deneyimi için gereken tüm rehberliği sunuyoruz.
-            </p>
+    <div class="hero-image-bg mb-5" 
+     style="background-image: url('{% static 'images/hero-background2.jpg' %}'); 
+            background-size: cover; 
+            background-position: top center; 
+            min-height: 95vh; 
+            display: flex; 
+            flex-direction: column; 
+            padding-top: 20px;">
+            
+    <div class="container d-flex flex-column justify-content-between flex-grow-1">
 
-            <div class="hero-features">
-                <span><i class="bi bi-person-video3"></i> Uzman Eğitmenler</span>
-                <span><i class="bi bi-lightbulb-fill"></i> Etkili Öğrenme Metotları</span>
-                <span><i class="bi bi-headset"></i> Birebir Rehberlik</span>
-                <span><i class="bi bi-calendar-check"></i> Esnek Ders Programları</span>
-            </div>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-end w-100 mt-4" style="padding-right: 14%;">
+            {% if user.is_authenticated %}
+                <a class="btn btn-primary btn-lg px-4 gap-3" href="{% url 'dersler:kurs_listesi' %}" role="button">Kursları Görüntüle</a>
+            {% else %}
+                <a class="btn btn-primary btn-lg px-4 gap-3" href="{% url 'login' %}" role="button">Giriş Yap</a>
+            {% endif %}
 
-            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                {% if user.is_authenticated %}
-                    <a class="btn btn-primary btn-lg px-4 gap-3" href="{% url 'dersler:kurs_listesi' %}" role="button">Kursları Görüntüle</a>
-                {% else %}
-                    <a class="btn btn-primary btn-lg px-4 gap-3" href="{% url 'login' %}" role="button">Giriş Yap</a>
-                {% endif %}
+            <a id="oyunlar-butonu" class="btn btn-warning btn-lg px-4" href="{% url 'oyunlar:oyun_listesi' %}" role="button">
+                <i class="bi bi-joystick me-2"></i> Eğlenerek Öğren!
+            </a>
+        </div>
 
-                <a id="oyunlar-butonu" class="btn btn-warning btn-lg px-4" href="{% url 'oyunlar:oyun_listesi' %}" role="button">
-                    <i class="bi bi-joystick me-2"></i> Eğlenerek Öğren!
-                </a>
+        <div class="row justify-content-start gap-5" style="margin-bottom: 100px;">
+            <div class="col-auto">
+                <h3 class="fw-bold" style="color: #003366;">+500</h3>
+                <p class="lead fs-6 fw-bold mb-0">Başarılı Öğrenci</p>
             </div>
-
-            <div class="row justify-content-center mt-5 pt-3 gap-5">
-                <div class="col-auto mb-3">
-                    <h3 class="fw-bold text-primary">+500</h3>
-                    <p class="lead fs-6">Başarılı Öğrenci</p>
-                </div>
-                <div class="col-auto mb-3">
-                    <h3 class="fw-bold text-primary">%97</h3>
-                    <p class="lead fs-6">Sertifika Başarısı</p>
-                </div>
-                <div class="col-auto mb-3">
-                    <h3 class="fw-bold text-primary">4.9/5</h3>
-                    <p class="lead fs-6">Öğrenci Memnuniyeti</p>
-                </div>
+            <div class="col-auto">
+                <h3 class="fw-bold" style="color: #003366;">%97</h3>
+                <p class="lead fs-6 fw-bold mb-0">Sertifika Başarısı</p>
             </div>
+            <div class="col-auto">
+                <h3 class="fw-bold" style="color: #003366;">4.9/5</h3>
+                <p class="lead fs-6 fw-bold mb-0">Öğrenci Memnuniyeti</p>
             </div>
+        </div>
+        
     </div>
-
+</div>
+    
+    
     <div class="container my-5 py-4">
         <div class="text-center mb-5">
             <h2 class="display-5 fw-bold mb-3">Neden Romingo Academy?</h2>
