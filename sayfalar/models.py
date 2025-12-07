@@ -43,3 +43,21 @@ class RehberVideo(models.Model):
     def __str__(self):
         # Hangi sayfaya ait olduğunu admin panelinde daha net görelim
         return f"{self.get_sayfa_display()} - {self.baslik}"
+
+
+# sayfalar/models.py dosyasına ekleyin:
+
+class IletisimTalebi(models.Model):
+    ad_soyad = models.CharField(max_length=100, verbose_name="Ad Soyad")
+    email = models.EmailField(verbose_name="E-posta Adresi")
+    telefon = models.CharField(max_length=20, verbose_name="Telefon Numarası")
+    mesaj = models.TextField(verbose_name="Mesaj", blank=True, null=True) # İsteğe bağlı mesaj alanı
+    olusturulma_tarihi = models.DateTimeField(auto_now_add=True, verbose_name="Tarih")
+
+    class Meta:
+        verbose_name = "İletişim Talebi"
+        verbose_name_plural = "İletişim Talepleri"
+        ordering = ['-olusturulma_tarihi']
+
+    def __str__(self):
+        return f"{self.ad_soyad} - {self.telefon}"

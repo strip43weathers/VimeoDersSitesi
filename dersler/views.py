@@ -1,17 +1,34 @@
 # dersler/views.py
 
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from .models import Kurs, Ders
 from blog.models import BlogYazisi
 from sayfalar.models import RehberVideo
 from kullanicilar.models import Profil
+from django.contrib import messages
+from sayfalar.forms import IletisimForm
+
 
 def anasayfa_view(request):
+    # Form İşlemleri
+    if request.method == 'POST':
+        form = IletisimForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'İletişim talebiniz başarıyla alındı! Size en kısa sürede dönüş yapacağız.')
+            return redirect('anasayfa')  # Sayfayı yenileyerek formu temizle
+        else:
+            messages.error(request, 'Lütfen formdaki hataları düzeltin.')
+    else:
+        form = IletisimForm()
+
     recent_posts = BlogYazisi.objects.order_by('-olusturulma_tarihi')[:3]
     rehber_video = RehberVideo.objects.filter(sayfa='anasayfa', aktif=True).first()
+
     context = {
         'recent_posts': recent_posts,
         'rehber_video': rehber_video,
+        'form': form,  # Formu template'e gönderiyoruz
     }
     return render(request, 'anasayfa.html', context)
 
