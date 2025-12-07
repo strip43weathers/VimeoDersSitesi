@@ -20,3 +20,11 @@ class SiparisForm(forms.ModelForm):
         widgets = {
             'adres': forms.Textarea(attrs={'rows': 3}),
         }
+
+
+class IndirimKoduForm(forms.Form):
+    kod = forms.CharField(
+        max_length=50,
+        label='İndirim Kodu',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kupon Kodu'})
+    )

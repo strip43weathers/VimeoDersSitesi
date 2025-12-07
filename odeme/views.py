@@ -2,9 +2,10 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib import messages
-from .models import Kitap, Sepet, SepetUrunu, Siparis, SiparisUrunu
-from .forms import SiparisForm
+from .models import Kitap, Sepet, SepetUrunu, Siparis, SiparisUrunu, IndirimKodu
+from .forms import SiparisForm, IndirimKoduForm
 from kullanicilar.models import Profil
 from decimal import Decimal
 import uuid
@@ -27,26 +28,50 @@ def _get_sepet(request):
 
 
 def get_indirim_durumu(user):
-    """
-    Kullanıcı varsa ve kayıt tarihinden itibaren 24 saat geçmemişse
-    indirim aktif döner.
-    """
     if not user.is_authenticated:
         return False, None
-
     try:
-        # Profil modelinizde kayit_tarihi olduğunu varsayıyoruz
         kayit_tarihi = user.profil.kayit_tarihi
         simdi = timezone.now()
         bitis_tarihi = kayit_tarihi + timedelta(hours=24)
-
         if simdi < bitis_tarihi:
-            # ISO formatında string olarak döndürüyoruz (JS için)
             return True, bitis_tarihi.isoformat()
     except Exception as e:
         pass
-
     return False, None
+
+
+# --- KUPON İŞLEMLERİ ---
+
+@require_POST
+def kupon_uygula(request):
+    sepet = _get_sepet(request)
+    form = IndirimKoduForm(request.POST)
+
+    if form.is_valid():
+        kod = form.cleaned_data['kod']
+        try:
+            kupon = IndirimKodu.objects.get(kod=kod, aktif=True)
+            if kupon.gecerli_mi:
+                sepet.uygulanan_kupon = kupon
+                sepet.save()
+                messages.success(request, f"%{kupon.indirim_orani} indirim uygulandı!")
+            else:
+                messages.error(request, "Bu kuponun süresi dolmuş veya kullanım limiti dolmuş.")
+        except IndirimKodu.DoesNotExist:
+            messages.error(request, "Geçersiz kupon kodu.")
+            sepet.uygulanan_kupon = None
+            sepet.save()
+
+    return redirect('odeme:sepeti_goruntule')
+
+
+def kupon_kaldir(request):
+    sepet = _get_sepet(request)
+    sepet.uygulanan_kupon = None
+    sepet.save()
+    messages.info(request, "Kupon kaldırıldı.")
+    return redirect('odeme:sepeti_goruntule')
 
 
 # --- SEPET İŞLEMLERİ ---
@@ -54,21 +79,24 @@ def get_indirim_durumu(user):
 def sepeti_goruntule(request):
     sepet = _get_sepet(request)
 
-    # İndirim Kontrolü
+    # Sepetteki kupon artık geçersizse (örn: başkası son kullanma hakkını kullandıysa) kaldır
+    if sepet.uygulanan_kupon and not sepet.uygulanan_kupon.gecerli_mi:
+        messages.warning(request, f"Sepetinizdeki '{sepet.uygulanan_kupon.kod}' kuponunun süresi veya limiti doldu.")
+        sepet.uygulanan_kupon = None
+        sepet.save()
+
+    kupon_form = IndirimKoduForm()
     indirim_aktif, indirim_bitis = get_indirim_durumu(request.user)
 
-    # Sepet toplamını hesapla
-    toplam_tutar = sepet.toplam_tutar
+    hesaplanan_tutar = sepet.sepet_son_tutar
+    if indirim_aktif and hesaplanan_tutar > 0:
+        hesaplanan_tutar = round(hesaplanan_tutar * Decimal('0.90'), 2)
 
-    # Eğer indirim aktifse ve sepet boş değilse tutarı güncelle
-    if indirim_aktif and toplam_tutar > 0:
-        toplam_tutar = round(toplam_tutar * Decimal('0.90'), 2)
-
-    # Sepet objesine geçici olarak indirimli tutarı atıyoruz (DB'ye kaydetmeden, sadece gösterim için)
-    sepet.gosterilecek_tutar = toplam_tutar
+    sepet.gosterilecek_tutar = hesaplanan_tutar
 
     context = {
         'sepet': sepet,
+        'kupon_form': kupon_form,
         'indirim_aktif': indirim_aktif,
         'indirim_bitis_tarihi': indirim_bitis
     }
@@ -78,15 +106,13 @@ def sepeti_goruntule(request):
 def sepete_ekle(request, kitap_id):
     kitap = get_object_or_404(Kitap, id=kitap_id)
     sepet = _get_sepet(request)
-
     sepet_urunu, created = SepetUrunu.objects.get_or_create(sepet=sepet, kitap=kitap)
     if not created:
         sepet_urunu.adet += 1
         sepet_urunu.save()
-        messages.success(request, f'"{kitap.baslik}" sepetinizdeki miktarı güncellendi.')
+        messages.success(request, f'"{kitap.baslik}" miktarı güncellendi.')
     else:
-        messages.success(request, f'"{kitap.baslik}" sepetinize eklendi.')
-
+        messages.success(request, f'"{kitap.baslik}" sepete eklendi.')
     return redirect('odeme:sepeti_goruntule')
 
 
@@ -94,14 +120,13 @@ def sepetten_cikar(request, urun_id):
     sepet = _get_sepet(request)
     urun = get_object_or_404(SepetUrunu, id=urun_id, sepet=sepet)
     urun.delete()
-    messages.info(request, 'Ürün sepetten çıkarıldı.')
+    messages.info(request, 'Ürün çıkarıldı.')
     return redirect('odeme:sepeti_goruntule')
 
 
 def sepet_adet_guncelle(request, urun_id, islem):
     sepet = _get_sepet(request)
     urun = get_object_or_404(SepetUrunu, id=urun_id, sepet=sepet)
-
     if islem == 'arttir':
         urun.adet += 1
         urun.save()
@@ -111,7 +136,6 @@ def sepet_adet_guncelle(request, urun_id, islem):
             urun.save()
         else:
             urun.delete()
-
     return redirect('odeme:sepeti_goruntule')
 
 
@@ -124,32 +148,39 @@ def odeme_yap(request):
         messages.warning(request, 'Sepetiniz boş.')
         return redirect('odeme:kitap_listesi')
 
-    # İndirim Kontrolü
-    indirim_aktif, indirim_bitis = get_indirim_durumu(request.user)
+    # Son kontrol: Kupon hala geçerli mi?
+    if sepet.uygulanan_kupon and not sepet.uygulanan_kupon.gecerli_mi:
+        messages.error(request, "Uygulanan kuponun limiti doldu veya süresi geçti.")
+        sepet.uygulanan_kupon = None
+        sepet.save()
+        return redirect('odeme:sepeti_goruntule')
 
-    # Ödenecek tutarı belirle
-    odenecek_tutar = sepet.toplam_tutar
-    if indirim_aktif:
+    indirim_aktif, indirim_bitis = get_indirim_durumu(request.user)
+    odenecek_tutar = sepet.sepet_son_tutar
+    if indirim_aktif and odenecek_tutar > 0:
         odenecek_tutar = round(odenecek_tutar * Decimal('0.90'), 2)
 
-    # Sepet objesine template'de göstermek için atama yapıyoruz
     sepet.gosterilecek_tutar = odenecek_tutar
 
     if request.method == 'POST':
         form = SiparisForm(request.POST)
         if form.is_valid():
-            # Sipariş Oluştur
             siparis = form.save(commit=False)
             siparis.user = request.user
-            # İndirimli tutarı kaydediyoruz!
             siparis.toplam_tutar = odenecek_tutar
+
+            # Kupon İşlemleri
+            if sepet.uygulanan_kupon:
+                siparis.kullanilan_kupon = sepet.uygulanan_kupon.kod
+                # Kullanım sayısını 1 artırıyoruz!
+                sepet.uygulanan_kupon.kullanim_sayisi += 1
+                sepet.uygulanan_kupon.save()
+
             siparis.save()
 
-            # Sepet Ürünlerini Sipariş Ürünlerine Dönüştür
             for item in sepet.items.all():
-                # Ürün bazlı fiyatı da indirimli kaydediyoruz
                 satis_fiyati = item.kitap.fiyat
-                if indirim_aktif:
+                if indirim_aktif:  # Ürün bazlı indirim gösterimi için (opsiyonel)
                     satis_fiyati = round(satis_fiyati * Decimal('0.90'), 2)
 
                 SiparisUrunu.objects.create(
@@ -159,7 +190,8 @@ def odeme_yap(request):
                     adet=item.adet
                 )
 
-            # Sepeti Temizle
+            sepet.uygulanan_kupon = None
+            sepet.save()
             sepet.items.all().delete()
 
             messages.success(request, 'Siparişiniz başarıyla alındı!')
@@ -175,7 +207,6 @@ def odeme_yap(request):
                 initial_data['telefon'] = request.user.profil.telefon
         except:
             pass
-
         form = SiparisForm(initial=initial_data)
 
     context = {
@@ -190,13 +221,9 @@ def odeme_yap(request):
 # --- KİTAP GÖRÜNTÜLEME ---
 
 def kitap_listesi(request):
-    # Sıralama parametresini al
     siralama = request.GET.get('sirala')
-
-    # Tüm kitapları al
     kitaplar = Kitap.objects.all()
 
-    # Parametreye göre sıralama uygula
     if siralama == 'fiyat_artan':
         kitaplar = kitaplar.order_by('fiyat')
     elif siralama == 'fiyat_azalan':
@@ -206,35 +233,28 @@ def kitap_listesi(request):
     elif siralama == 'isim_z_a':
         kitaplar = kitaplar.order_by('-baslik')
     elif siralama == 'yeni':
-        kitaplar = kitaplar.order_by('-id')  # ID'si büyük olan en yenidir
+        kitaplar = kitaplar.order_by('-id')
     else:
-        # Varsayılan sıralama (örneğin ID'ye göre veya modeldeki Meta class'ına göre)
         kitaplar = kitaplar.order_by('id')
 
-    # İndirim Kontrolü (Mevcut kodunuz)
     indirim_aktif, indirim_bitis = get_indirim_durumu(request.user)
-
     if indirim_aktif:
         for kitap in kitaplar:
-            # %10 İndirim uygula (Geçici attribute)
             kitap.indirimli_fiyat = round(kitap.fiyat * Decimal('0.90'), 2)
 
     context = {
         'kitaplar': kitaplar,
         'indirim_aktif': indirim_aktif,
         'indirim_bitis_tarihi': indirim_bitis,
-        'secili_siralama': siralama  # Dropdown'da seçili olanı hatırlamak için
+        'secili_siralama': siralama
     }
     return render(request, 'odeme/kitap_listesi.html', context)
 
 
 def kitap_detay_view(request, kitap_id):
     kitap = get_object_or_404(Kitap, id=kitap_id)
-
-    # İndirim Kontrolü
     indirim_aktif, indirim_bitis = get_indirim_durumu(request.user)
     indirimli_fiyat = None
-
     if indirim_aktif:
         indirimli_fiyat = round(kitap.fiyat * Decimal('0.90'), 2)
 

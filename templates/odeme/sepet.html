@@ -4,7 +4,17 @@
 {% block content %}
 <div class="container my-5">
     
-    {# --- İNDİRİM SAYACI BAŞLANGIÇ --- #}
+    {# --- Messages (Kupon hataları veya başarı mesajları için) --- #}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {# --- İNDİRİM SAYACI BAŞLANGIÇ (YENİ ÜYE) --- #}
     {% if indirim_aktif %}
     <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center justify-content-between p-3" style="background: linear-gradient(135deg, #d1e7dd 0%, #badbcc 100%);">
         <div class="d-flex align-items-center">
@@ -13,7 +23,7 @@
             </div>
             <div>
                 <strong class="text-success-emphasis d-block">Hoş Geldin İndirimi Aktif!</strong>
-                <small class="text-success-emphasis">Sepet tutarına %10 indirim uygulandı.</small>
+                <small class="text-success-emphasis">Sepet tutarına ekstra %10 indirim uygulanıyor.</small>
             </div>
         </div>
         <div class="text-end">
@@ -24,7 +34,7 @@
     {# --- İNDİRİM SAYACI BİTİŞ --- #}
 
     <h2 class="mb-4 fw-bold"><i class="bi bi-cart3 me-2"></i>Alışveriş Sepetim</h2>
-    
+
     {% if sepet.items.exists %}
     <div class="row">
         <div class="col-lg-8">
@@ -61,42 +71,62 @@
                 </div>
             </div>
         </div>
+        
         <div class="col-lg-4">
-            <div class="card border-0 shadow rounded-4 bg-light">
+            <div class="card border-0 shadow rounded-4 bg-light mb-4">
                 <div class="card-body p-4">
                     <h4 class="fw-bold mb-3">Sipariş Özeti</h4>
-                    
-                    {# --- FİYAT ALANI GÜNCELLEMESİ --- #}
-                    {% if indirim_aktif %}
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Ara Toplam</span>
-                            <span class="text-decoration-line-through text-muted">{{ sepet.toplam_tutar }} TL</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2 text-success">
-                            <span>Hoş Geldin İndirimi (%10)</span>
-                            <span>-Applied</span>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between mb-4">
-                            <strong class="fs-5">Toplam</strong>
-                            <strong class="fs-4 text-success fw-bold">{{ sepet.gosterilecek_tutar }} TL</strong>
-                        </div>
-                    {% else %}
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Ara Toplam</span>
-                            <span>{{ sepet.toplam_tutar }} TL</span>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between mb-4">
-                            <strong class="fs-5">Toplam</strong>
-                            <strong class="fs-5 text-primary">{{ sepet.toplam_tutar }} TL</strong>
-                        </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small text-muted fw-bold">İNDİRİM KUPONU</label>
+                        {% if sepet.uygulanan_kupon %}
+                            <div class="alert alert-success d-flex justify-content-between align-items-center p-2 mb-0">
+                                <small>
+                                    <strong>{{ sepet.uygulanan_kupon.kod }}</strong><br>
+                                    %{{ sepet.uygulanan_kupon.indirim_orani }} İndirim Uygulandı
+                                </small>
+                                <a href="{% url 'odeme:kupon_kaldir' %}" class="btn btn-sm btn-danger py-0" title="Kaldır">x</a>
+                            </div>
+                        {% else %}
+                            <form action="{% url 'odeme:kupon_uygula' %}" method="post" class="d-flex gap-2">
+                                {% csrf_token %}
+                                {{ kupon_form.kod }}
+                                <button type="submit" class="btn btn-dark">Uygula</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                    <hr>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Ara Toplam</span>
+                        <span>{{ sepet.toplam_tutar }} TL</span>
+                    </div>
+
+                    {% if sepet.uygulanan_kupon %}
+                    <div class="d-flex justify-content-between mb-2 text-success">
+                        <span>Kupon İndirimi (%{{ sepet.uygulanan_kupon.indirim_orani }})</span>
+                        <span>- Aktif</span>
+                    </div>
                     {% endif %}
-                    {# --- FİYAT ALANI SONU --- #}
+
+                    {% if indirim_aktif %}
+                    <div class="d-flex justify-content-between mb-2 text-success">
+                        <span>Hoş Geldin İndirimi (%10)</span>
+                        <span>- Aktif</span>
+                    </div>
+                    {% endif %}
+
+                    <hr>
+                    <div class="d-flex justify-content-between mb-4">
+                        <strong class="fs-5">Toplam</strong>
+                        <strong class="fs-4 text-success fw-bold">{{ sepet.gosterilecek_tutar }} TL</strong>
+                    </div>
 
                     <div class="d-grid gap-2">
-                        <a href="{% url 'odeme:odeme_yap' %}" class="btn btn-success btn-lg rounded-pill fw-bold">
-                            Siparişi Tamamla <i class="bi bi-arrow-right"></i>
+                        <a href="{% url 'odeme:odeme_yap' %}" 
+                            class="btn btn-success btn-lg rounded-pill fw-bold" 
+                            style="background-color: #198754 !important; border-color: #198754 !important;">
+                             Siparişi Tamamla <i class="bi bi-arrow-right"></i>
                         </a>
                         <a href="{% url 'odeme:kitap_listesi' %}" class="btn btn-outline-primary rounded-pill">Alışverişe Devam Et</a>
                     </div>
@@ -113,7 +143,6 @@
     {% endif %}
 </div>
 
-{# --- SAYAÇ SCRİPTİ --- #}
 {% if indirim_aktif %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -128,7 +157,7 @@
                 if (distance < 0) {
                     clearInterval(countdownFunction);
                     timerElement.innerHTML = "SÜRE DOLDU";
-                    location.reload(); // Süre dolunca sayfayı yenile
+                    location.reload(); 
                     return;
                 }
 

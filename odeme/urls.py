@@ -1,3 +1,5 @@
+# odeme/urls.py
+
 from django.urls import path
 from . import views
 
@@ -9,6 +11,10 @@ urlpatterns = [
     path('sepete-ekle/<int:kitap_id>/', views.sepete_ekle, name='sepete_ekle'),
     path('sepetten-cikar/<int:urun_id>/', views.sepetten_cikar, name='sepetten_cikar'),
     path('sepet-guncelle/<int:urun_id>/<str:islem>/', views.sepet_adet_guncelle, name='sepet_adet_guncelle'),
+
+    # --- KUPON İŞLEMLERİ ---
+    path('kupon-uygula/', views.kupon_uygula, name='kupon_uygula'),
+    path('kupon-kaldir/', views.kupon_kaldir, name='kupon_kaldir'),
 
     # --- ÖDEME ---
     path('odeme-yap/', views.odeme_yap, name='odeme_yap'),
