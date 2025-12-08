@@ -6,3 +6,5 @@ from .models import BlogYazisi
 class BlogYazisiAdmin(admin.ModelAdmin):
     list_display = ('baslik', 'sira_numarasi', 'olusturulma_tarihi')
     list_editable = ('sira_numarasi',)
+
+#bsb
