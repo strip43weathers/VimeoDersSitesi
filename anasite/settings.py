@@ -122,8 +122,13 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+if 'RENDER' in os.environ:
+    MEDIA_ROOT = os.path.join('/var/lib/data', 'media')
+else:
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 X_FRAME_OPTIONS = 'SAMEORIGIN'
