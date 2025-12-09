@@ -1,68 +1,120 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static %}  {% block title %}Ana Sayfa - {{ block.super }}{% endblock %}
 
-{% block title %}Ana Sayfa - {{ block.super }}{% endblock %}
-
-{% block content %}
+{% block full_width_content %}
     <style>
-        /* Kartların üzerine gelince yukarı çıkma efekti */
-        .feature-card {
-            transition: all 0.3s ease-in-out;
-            border-radius: 15px;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 1rem 3rem rgba(0,0,0,.15) !important;
+        /* Hero Alanı Özel Stilleri */
+        .hero-wrapper {
+            position: relative;
+            width: 100%;
+            
+            /* GÜNCELLENDİ: Fotoğrafın üzerine ESKİ MAVİ TONLARINDA yarı saydam filtre eklendi */
+            background: 
+                
+                url('{% static "images/561079.jpg" %}') no-repeat center center; /* Senin Fotoğrafın */
+            
+            background-size: cover;
+            color: white;
+            padding-top: 6rem;
+            padding-bottom: 12rem;
+            margin-bottom: 0;
+            overflow: hidden;
         }
 
-        /* Yeni Sertifika Bölümü İçin Başlık Stili */
-        .ls-md {
-            letter-spacing: 2px; /* Harf aralığını açar */
+        /* Dalga Efekti */
+        .custom-shape-divider-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+            transform: rotate(180deg);
+        }
+
+        .custom-shape-divider-bottom svg {
+            position: relative;
+            display: block;
+            width: calc(100% + 1.3px);
+            height: 120px;
+        }
+
+        .custom-shape-divider-bottom .shape-fill {
+            fill: #f8f9fa; /* Sitenin alt fon rengiyle uyumlu */
+        }
+
+        /* Yazı gölgeleri - okunabilirlik için */
+        .hero-wrapper h1, .hero-wrapper p, .hero-wrapper i {
+            color: white !important;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
     </style>
 
-    <div class="hero-image-bg mb-5" 
-     style="background-image: url('{% static 'images/hero-background2.jpg' %}'); 
-            background-size: cover; 
-            background-position: top center; 
-            min-height: 95vh; 
-            display: flex; 
-            flex-direction: column; 
-            padding-top: 20px;">
+    <div class="hero-wrapper text-center">
+        <div class="container position-relative" style="z-index: 2;">
+            <h1 class="display-3 fw-bold mb-4">Romingo Academy ile Romence'yi Keşfedin</h1>
+            <p class="lead mb-5 col-md-8 mx-auto opacity-90 fw-bold">
+                Profesyonel ekibimiz ve uzman öğretmenlerimiz eşliğinde, interaktif ve keyifli bir ders ortamında Romence öğrenin. Başlangıç seviyesinden ileri seviyeye, size özel bir öğrenme deneyimi.
+            </p>
             
-    <div class="container d-flex flex-column justify-content-between flex-grow-1">
+            <div class="hero-features mb-5 d-flex justify-content-center gap-4 flex-wrap text-white">
+                <span class="fs-5 fw-bold"><i class="bi bi-person-video3 me-2 text-warning"></i>Uzman Eğitmenler</span>
+                <span class="fs-5 fw-bold"><i class="bi bi-lightbulb-fill me-2 text-warning"></i>Etkili Metotlar</span>
+                <span class="fs-5 fw-bold"><i class="bi bi-award-fill me-2 text-warning"></i>Sertifikalı Eğitim</span>
+            </div>
+            
+            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mb-4">
+                {% if user.is_authenticated %}
+                    <a class="btn btn-light btn-lg px-5 fw-bold text-primary shadow-lg" href="{% url 'dersler:kurs_listesi' %}">
+                        Kursları Görüntüle
+                    </a>
+                {% else %}
+                    <a class="btn btn-light btn-lg px-5 fw-bold text-primary shadow-lg" href="{% url 'login' %}">
+                        Giriş Yap
+                    </a>
+                {% endif %}
+                
+                <a class="btn btn-warning btn-lg px-5 fw-bold text-dark shadow-lg" href="{% url 'oyunlar:oyun_listesi' %}">
+                    <i class="bi bi-joystick me-2"></i> Eğlenerek Öğren
+                </a>
+                
+                {% if not user.is_authenticated %}
+                <a class="btn btn-outline-light btn-lg px-5 fw-bold" href="{% url 'kullanicilar:kayit' %}">
+                    Hemen Kayıt Ol
+                </a>
+                {% endif %}
+            </div>
 
-        <div class="d-grid gap-2 d-sm-flex justify-content-sm-end w-100 mt-4" style="padding-right: 14%;">
-            {% if user.is_authenticated %}
-                <a class="btn btn-primary btn-lg px-4 gap-3" href="{% url 'dersler:kurs_listesi' %}" role="button">Kursları Görüntüle</a>
-            {% else %}
-                <a class="btn btn-primary btn-lg px-4 gap-3" href="{% url 'login' %}" role="button">Giriş Yap</a>
-            {% endif %}
-
-            <a id="oyunlar-butonu" class="btn btn-warning btn-lg px-4" href="{% url 'oyunlar:oyun_listesi' %}" role="button">
-                <i class="bi bi-joystick me-2"></i> Eğlenerek Öğren!
-            </a>
+            <div>
+                <a class="btn btn-link text-white text-decoration-none opacity-75 hover-opacity-100" href="#paketler">
+                    <i class="bi bi-arrow-down-circle fs-2"></i><br>
+                    <small>Paketleri İncele</small>
+                </a>
+            </div>
         </div>
 
-        <div class="row justify-content-start gap-5" style="margin-bottom: 100px;">
-            <div class="col-auto">
-                <h3 class="fw-bold" style="color: #003366;">+500</h3>
-                <p class="lead fs-6 fw-bold mb-0">Başarılı Öğrenci</p>
-            </div>
-            <div class="col-auto">
-                <h3 class="fw-bold" style="color: #003366;">%97</h3>
-                <p class="lead fs-6 fw-bold mb-0">Sertifika Başarısı</p>
-            </div>
-            <div class="col-auto">
-                <h3 class="fw-bold" style="color: #003366;">4.9/5</h3>
-                <p class="lead fs-6 fw-bold mb-0">Öğrenci Memnuniyeti</p>
-            </div>
+        <div class="custom-shape-divider-bottom">
+            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                
+                
+                <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" class="shape-fill"></path>
+            </svg>
         </div>
-        
     </div>
-</div>
-    
+{% endblock %}
+
+{% block content %}
+    <style>
+        html { scroll-behavior: smooth; }
+        .feature-card { transition: all 0.3s ease-in-out; border-radius: 15px; }
+        .feature-card:hover { transform: translateY(-10px); box-shadow: 0 1rem 3rem rgba(0,0,0,.15) !important; }
+        .ls-md { letter-spacing: 2px; }
+        .transition-hover { transition: transform 0.2s ease, background-color 0.2s; }
+        .transition-hover:hover { transform: translateX(10px); background-color: #fff !important; border: 1px solid #dee2e6 !important; }
+        .opacity-10 { opacity: 0.05 !important; }
+        .hover-up { transition: transform 0.3s ease; }
+        .hover-up:hover { transform: translateY(-5px); }
+    </style>
     
     <div class="container my-5 py-4">
         <div class="text-center mb-5">
@@ -230,13 +282,6 @@
             </div>
     </div>
 </div>
-                
-
-    <style>
-        .transition-hover { transition: transform 0.2s ease, background-color 0.2s; }
-        .transition-hover:hover { transform: translateX(10px); background-color: #fff !important; border: 1px solid #dee2e6 !important; }
-        .opacity-10 { opacity: 0.05 !important; }
-    </style>
             
             <div class="row text-center mt-5 pt-4">
                 <div class="col-md-4">
@@ -313,7 +358,7 @@
         </div>
     </div>
 
-    <div class="container my-5 py-5">
+    <div id="paketler" class="container my-5 py-5">
     <div class="text-center mb-5">
         <h2 class="display-5 fw-bold">Eğitim Paketlerimiz</h2>
         <p class="lead text-muted">Size uygun paketi seçin, Romence öğrenmeye hemen başlayın.</p>
