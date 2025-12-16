@@ -16,7 +16,7 @@ class SiparisForm(forms.ModelForm):
 
     class Meta:
         model = Siparis
-        fields = ['ad', 'soyad', 'email', 'telefon', 'adres']
+        fields = ['ad', 'soyad', 'email', 'telefon', 'adres', 'tc_kimlik',]
         widgets = {
             'adres': forms.Textarea(attrs={'rows': 3}),
         }

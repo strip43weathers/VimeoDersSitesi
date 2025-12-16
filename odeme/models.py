@@ -123,6 +123,9 @@ class Siparis(models.Model):
     telefon = models.CharField(max_length=20, verbose_name="Telefon Numarası")
     adres = models.TextField(verbose_name="Teslimat Adresi")
 
+    # --- YENİ EKLENEN ALAN: TC KİMLİK ---
+    tc_kimlik = models.CharField(max_length=11, default='11111111111', verbose_name="TC Kimlik No")
+
     toplam_tutar = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Toplam Tutar")
     tarih = models.DateTimeField(auto_now_add=True, verbose_name="Sipariş Tarihi")
     durum = models.CharField(max_length=20, choices=DURUM_SECENEKLERI, default='hazirlaniyor',

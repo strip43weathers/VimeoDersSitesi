@@ -190,8 +190,7 @@ def odeme_yap(request):
             # Kupon İşlemleri
             if sepet.uygulanan_kupon:
                 siparis.kullanilan_kupon = sepet.uygulanan_kupon.kod
-                # Kullanım sayısını BURADA ARTIRMIYORUZ. Ödeme başarılı olunca artıracağız veya
-                # burada artırıp başarısız olursa düşeceğiz. Basitlik için ödeme sonucunda işlem yapacağız.
+                # Kullanım sayısını BURADA ARTIRMIYORUZ. Ödeme başarılı olunca artıracağız.
 
             siparis.save()
 
@@ -268,22 +267,22 @@ def odeme_baslat(request, siparis_id):
 
         'buyer': {
             'id': str(request.user.id),
-            'name': siparis.ad,  # Formdan gelen adı kullanıyoruz
+            'name': siparis.ad,
             'surname': siparis.soyad,
             'gsmNumber': siparis.telefon or '+905555555555',
             'email': siparis.email,
-            'identityNumber': '11111111111',  # Fiziksel üründe TC gerekebilir, yoksa dummy
+            'identityNumber': siparis.tc_kimlik,  # GÜNCELLENDİ: Formdan gelen TC
             'lastLoginDate': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
             'registrationDate': request.user.date_joined.strftime('%Y-%m-%d %H:%M:%S'),
             'registrationAddress': siparis.adres,
             'ip': get_client_ip(request),
-            'city': 'Istanbul',  # Dinamik yapılabilir
+            'city': 'Istanbul',
             'country': 'Turkey',
             'zipCode': '34732'
         },
         'shippingAddress': {
             'contactName': f"{siparis.ad} {siparis.soyad}",
-            'city': 'Istanbul',  # Adres formunda şehir yoksa varsayılan veya parse edilmeli
+            'city': 'Istanbul',
             'country': 'Turkey',
             'address': siparis.adres,
             'zipCode': '34742'
@@ -298,26 +297,34 @@ def odeme_baslat(request, siparis_id):
         'basketItems': []
     }
 
-    # Siparişteki ürünleri İyzico sepetine ekle
+    # --- KRİTİK DÜZELTME: Sepet Toplamı ve Ürün Fiyat Kontrolü ---
+    iyzico_basket_items = []
+    hesaplanan_toplam = Decimal('0.00')
+
     for item in siparis.items.all():
-        request_iyzico['basketItems'].append({
+        item_price = item.fiyat * item.adet
+        hesaplanan_toplam += item_price
+
+        iyzico_basket_items.append({
             'id': str(item.kitap.id),
             'name': item.kitap.baslik,
             'category1': 'Kitap',
-            'itemType': 'PHYSICAL',  # Fiziksel ürün olduğu için
-            'price': str(item.fiyat * item.adet)  # Adet * Fiyat olarak gönderiyoruz, iyzico mantığı
+            'itemType': 'PHYSICAL',
+            'price': str(item_price)
         })
 
-    # Eğer indirimler sonrası sepet tutarı ile ürünlerin toplamı uyuşmazsa iyzico hata verebilir.
-    # Bu yüzden 'basketItems' toplamının 'price' ile aynı olduğundan emin olmak gerek.
-    # En güvenli yöntem tüm sepeti tek bir kalem olarak göndermektir (sorun çıkarsa bunu kullanabilirsin):
-    # request_iyzico['basketItems'] = [{
-    #     'id': '101',
-    #     'name': 'Siparis Toplami',
-    #     'category1': 'Genel',
-    #     'itemType': 'PHYSICAL',
-    #     'price': str(siparis.toplam_tutar)
-    # }]
+    # Eğer kuruş farkı varsa, tek bir kalem olarak gönder (En güvenli yöntem)
+    if hesaplanan_toplam != siparis.toplam_tutar:
+        iyzico_basket_items = [{
+            'id': str(siparis.id),
+            'name': 'Siparis Toplami',
+            'category1': 'Genel',
+            'itemType': 'PHYSICAL',
+            'price': str(siparis.toplam_tutar)
+        }]
+
+    request_iyzico['basketItems'] = iyzico_basket_items
+    # --- DÜZELTME BİTİŞİ ---
 
     checkout_form_initialize = iyzipay.CheckoutFormInitialize()
     checkout_form_initialize_response = checkout_form_initialize.create(request_iyzico, options)
@@ -363,13 +370,9 @@ def odeme_sonuc(request):
                 siparis.iyzico_transaction_id = islem_id
                 siparis.save()
 
-                # Kupon kullanıldıysa kullanım sayısını şimdi artırıyoruz (veya modelde artırdıysak dokunmuyoruz)
-                # Sepet mantığı gereği, burada sepeti temizliyoruz.
+                # Kupon kullanıldıysa kullanım sayısını artır
                 sepet = _get_sepet(request)
                 if sepet.uygulanan_kupon:
-                    # Sipariş oluştururken kullanım sayısını artırmamıştık (odeme_yap'taki kodu sildim veya pas geçtim)
-                    # Doğrusu: Sipariş oluşturulurken kupon kodu siparişe string olarak kaydedildi.
-                    # Burada asıl IndirimKodu objesini bulup kullanım sayısını artırabiliriz.
                     try:
                         kupon = IndirimKodu.objects.get(kod=siparis.kullanilan_kupon)
                         kupon.kullanim_sayisi += 1
@@ -383,8 +386,7 @@ def odeme_sonuc(request):
                 sepet.items.all().delete()
 
                 messages.success(request, "Ödemeniz başarıyla alındı. Siparişiniz hazırlanıyor.")
-                # Başarılı sayfasına veya sipariş detayına yönlendir
-                return redirect('kullanicilar:hesabim')  # Veya özel bir 'tesekkurler' sayfası
+                return redirect('kullanicilar:hesabim')
 
             except Siparis.DoesNotExist:
                 return HttpResponse("Sipariş bulunamadı.")
@@ -392,8 +394,6 @@ def odeme_sonuc(request):
         else:
             # Ödeme Başarısız
             hata_mesaji = response.get('errorMessage', 'Ödeme alınamadı.')
-            context = {'hata': hata_mesaji}
-            # Basarisiz template'i yoksa basitçe render edebiliriz veya sepete yönlendirip hata basabiliriz.
             messages.error(request, f"Ödeme Başarısız: {hata_mesaji}")
             return redirect('odeme:sepeti_goruntule')
 
