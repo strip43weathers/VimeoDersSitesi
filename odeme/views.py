@@ -256,6 +256,13 @@ def odeme_baslat(request, siparis_id):
     if siparis.odeme_tamamlandi:
         return redirect('kullanicilar:hesabim')
 
+    # --- YENİ EKLENECEK KISIM: SON DAKİKA STOK KONTROLÜ ---
+    for urun in siparis.items.all():
+        if urun.kitap.stok < urun.adet:
+            messages.error(request, f"Üzgünüz, '{urun.kitap.baslik}' adlı ürünün stoğu tükenmiş veya azalmış.")
+            return redirect('odeme:sepeti_goruntule')
+    # -----------------------------------------------------
+
     # Gerekli bilgileri hazırla
     ip = get_client_ip(request)
     callback_url = request.build_absolute_uri(reverse('odeme:odeme_sonuc'))
@@ -338,7 +345,7 @@ def odeme_sonuc(request):
                         subject,
                         message,
                         settings.EMAIL_HOST_USER,
-                        ['furkanaygun2004@gmail.com'],  # <-- BURAYA KENDİ MAİLİNİ YAZ
+                        [settings.SIPARIS_BILDIRIM_MAILI],
                         fail_silently=True
                     )
                 except Exception as e:

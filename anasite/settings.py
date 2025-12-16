@@ -141,3 +141,6 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 IYZICO_API_KEY = config('IYZICO_API_KEY', default='')
 IYZICO_SECRET_KEY = config('IYZICO_SECRET_KEY', default='')
 IYZICO_BASE_URL = config('IYZICO_BASE_URL', default='https://sandbox-api.iyzipay.com')
+
+
+SIPARIS_BILDIRIM_MAILI = "furkanaygun2004@gmail.com"
