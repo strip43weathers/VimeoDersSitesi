@@ -3,7 +3,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 import datetime
-
+from django.conf import settings
+from django.utils.dateparse import parse_datetime
 
 class Profil(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profil')  # related_name ekledik
@@ -21,11 +22,14 @@ class Profil(models.Model):
         if self.ozel_erisim:
             return True
 
-        # 2. Eski kullanıcı mı? (25 Ekim 2025'ten önce kayıt olanlar)
-        # Not: Bu tarihi settings.py'dan çekmek daha iyidir ama şimdilik burada kalsın.
-        gecis_tarihi = timezone.make_aware(datetime.datetime(2025, 10, 25))
-        if self.user.date_joined < gecis_tarihi:
-            return True
+            # 2. Eski kullanıcı mı? Settings'den tarihi alıyoruz.
+            gecis_tarihi_str = getattr(settings, 'ESKI_UYE_GECIS_TARIHI', "2025-10-25")
+            # Basit string'i datetime objesine çevirme (veya direkt datetime verebilirsiniz settings'de)
+            gecis_tarihi = datetime.datetime.strptime(gecis_tarihi_str, "%Y-%m-%d")
+            gecis_tarihi = timezone.make_aware(gecis_tarihi)
+
+            if self.user.date_joined < gecis_tarihi:
+                return True
 
         return False
 

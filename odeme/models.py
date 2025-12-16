@@ -121,10 +121,11 @@ class Siparis(models.Model):
     soyad = models.CharField(max_length=100, verbose_name="Soyad")
     email = models.EmailField(verbose_name="E-posta")
     telefon = models.CharField(max_length=20, verbose_name="Telefon Numarası")
+    tc_kimlik = models.CharField(max_length=11, verbose_name="TC Kimlik No")
+    sehir = models.CharField(max_length=50, verbose_name="Şehir", default="İstanbul")
+    posta_kodu = models.CharField(max_length=10, verbose_name="Posta Kodu", default="34000")
+    ulke = models.CharField(max_length=50, verbose_name="Ülke", default="Turkey")
     adres = models.TextField(verbose_name="Teslimat Adresi")
-
-    # --- YENİ EKLENEN ALAN: TC KİMLİK ---
-    tc_kimlik = models.CharField(max_length=11, default='11111111111', verbose_name="TC Kimlik No")
 
     toplam_tutar = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Toplam Tutar")
     tarih = models.DateTimeField(auto_now_add=True, verbose_name="Sipariş Tarihi")

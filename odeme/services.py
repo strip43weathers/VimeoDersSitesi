@@ -53,30 +53,30 @@ class IyzicoService:
                 'id': str(user.id),
                 'name': siparis.ad,
                 'surname': siparis.soyad,
-                'gsmNumber': siparis.telefon or '+905555555555',
+                'gsmNumber': siparis.telefon,
                 'email': siparis.email,
                 'identityNumber': siparis.tc_kimlik,
                 'lastLoginDate': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'registrationDate': user.date_joined.strftime('%Y-%m-%d %H:%M:%S'),
                 'registrationAddress': siparis.adres,
                 'ip': ip,
-                'city': 'Istanbul',
-                'country': 'Turkey',
-                'zipCode': '34732'
+                'city': siparis.sehir,
+                'country': siparis.ulke,
+                'zipCode': siparis.posta_kodu,
             },
             'shippingAddress': {
                 'contactName': f"{siparis.ad} {siparis.soyad}",
-                'city': 'Istanbul',
-                'country': 'Turkey',
+                'city': siparis.sehir,
+                'country': siparis.ulke,
                 'address': siparis.adres,
-                'zipCode': '34742'
+                'zipCode': siparis.posta_kodu,
             },
             'billingAddress': {
                 'contactName': f"{siparis.ad} {siparis.soyad}",
-                'city': 'Istanbul',
-                'country': 'Turkey',
+                'city': siparis.ulke,
+                'country': siparis.ulke,
                 'address': siparis.adres,
-                'zipCode': '34742'
+                'zipCode': siparis.posta_kodu,
             },
             'basketItems': []
         }
