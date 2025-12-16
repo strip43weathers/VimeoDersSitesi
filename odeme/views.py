@@ -244,14 +244,36 @@ def odeme_baslat(request, siparis_id):
     if siparis.odeme_tamamlandi:
         return redirect('kullanicilar:hesabim')
 
-    # İyzico Seçenekleri
+    # --- KESİN ÇÖZÜM: API ve URL AYARLARI ---
+
+    # 1. API Anahtarlarını Temizle (Tırnak işaretlerini kaldır)
+    api_key = str(settings.IYZICO_API_KEY).replace("'", "").replace('"', "").strip()
+    secret_key = str(settings.IYZICO_SECRET_KEY).replace("'", "").replace('"', "").strip()
+
+    # 2. Base URL'i Temizle ve Protokolü Kaldır
+    # Kütüphaneniz 'https://' kısmını istemiyor, sadece domain (site adı) istiyor.
+    base_url = str(settings.IYZICO_BASE_URL).replace("'", "").replace('"', "").strip()
+
+    # Eğer URL 'https://' veya 'http://' ile başlıyorsa bunları siliyoruz.
+    if base_url.startswith("https://"):
+        base_url = base_url.replace("https://", "")
+    if base_url.startswith("http://"):
+        base_url = base_url.replace("http://", "")
+
+    # Temizlenmiş domain sonundaki olası '/' işaretini de kaldıralım
+    base_url = base_url.rstrip('/')
+
+    # 3. İyzico Seçeneklerini Sözlük (Dictionary) Olarak Hazırla
     options = {
-        'api_key': settings.IYZICO_API_KEY,
-        'secret_key': settings.IYZICO_SECRET_KEY,
-        'base_url': settings.IYZICO_BASE_URL
+        'api_key': api_key,
+        'secret_key': secret_key,
+        'base_url': base_url  # Sadece sandbox-api.iyzipay.com gönderir
     }
 
-    # Callback URL (Localhost veya Render için dinamik)
+    # NOT: Eğer yukarıdaki kod yine aynı hatayı verirse, aşağıdaki satırın yorumunu kaldırıp deneyin:
+    # options['base_url'] = base_url  # Sadece 'sandbox-api.iyzipay.com' gönderir
+
+    # Callback URL
     callback_url = request.build_absolute_uri(reverse('odeme:odeme_sonuc'))
 
     request_iyzico = {
@@ -271,7 +293,7 @@ def odeme_baslat(request, siparis_id):
             'surname': siparis.soyad,
             'gsmNumber': siparis.telefon or '+905555555555',
             'email': siparis.email,
-            'identityNumber': siparis.tc_kimlik,  # GÜNCELLENDİ: Formdan gelen TC
+            'identityNumber': siparis.tc_kimlik,
             'lastLoginDate': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
             'registrationDate': request.user.date_joined.strftime('%Y-%m-%d %H:%M:%S'),
             'registrationAddress': siparis.adres,
@@ -297,7 +319,7 @@ def odeme_baslat(request, siparis_id):
         'basketItems': []
     }
 
-    # --- KRİTİK DÜZELTME: Sepet Toplamı ve Ürün Fiyat Kontrolü ---
+    # Sepet Toplamı ve Ürün Fiyat Kontrolü
     iyzico_basket_items = []
     hesaplanan_toplam = Decimal('0.00')
 
@@ -313,7 +335,6 @@ def odeme_baslat(request, siparis_id):
             'price': str(item_price)
         })
 
-    # Eğer kuruş farkı varsa, tek bir kalem olarak gönder (En güvenli yöntem)
     if hesaplanan_toplam != siparis.toplam_tutar:
         iyzico_basket_items = [{
             'id': str(siparis.id),
@@ -324,7 +345,6 @@ def odeme_baslat(request, siparis_id):
         }]
 
     request_iyzico['basketItems'] = iyzico_basket_items
-    # --- DÜZELTME BİTİŞİ ---
 
     checkout_form_initialize = iyzipay.CheckoutFormInitialize()
     checkout_form_initialize_response = checkout_form_initialize.create(request_iyzico, options)
@@ -334,6 +354,7 @@ def odeme_baslat(request, siparis_id):
         return render(request, 'odeme/odeme_ekrani.html', {'iyzico_form': form_content})
     else:
         error_message = checkout_form_initialize_response.get('errorMessage', 'Bir hata oluştu')
+        # Hata mesajını ekrana basıyoruz ki sorunu net görelim
         return HttpResponse(f"Ödeme başlatılamadı: {error_message} <br> <a href='/odeme/sepet/'>Sepete Dön</a>")
 
 
