@@ -16,6 +16,6 @@ __pycache__/
 # Gizli anahtarları ve ortam değişkenlerini içeren dosya
 .env
 
-media
+media/
 
-#a
+staticfiles/
