@@ -73,7 +73,7 @@ class IyzicoService:
             },
             'billingAddress': {
                 'contactName': f"{siparis.ad} {siparis.soyad}",
-                'city': siparis.ulke,
+                'city': siparis.sehir,
                 'country': siparis.ulke,
                 'address': siparis.adres,
                 'zipCode': siparis.posta_kodu,
