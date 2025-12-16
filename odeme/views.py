@@ -1,6 +1,7 @@
 # odeme/views.py
 
 import iyzipay
+import json
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponse, reverse
 from django.contrib.auth.decorators import login_required
@@ -347,14 +348,22 @@ def odeme_baslat(request, siparis_id):
     request_iyzico['basketItems'] = iyzico_basket_items
 
     checkout_form_initialize = iyzipay.CheckoutFormInitialize()
-    checkout_form_initialize_response = checkout_form_initialize.create(request_iyzico, options)
+    # Yanıtı ham (raw) HTTPResponse nesnesi olarak alıyoruz
+    iyzico_raw_response = checkout_form_initialize.create(request_iyzico, options)
 
-    if checkout_form_initialize_response['status'] == 'success':
-        form_content = checkout_form_initialize_response['checkoutFormContent']
+    try:
+        # Ham yanıtı okuyup JSON formatına çeviriyoruz
+        response_content = iyzico_raw_response.read().decode('utf-8')
+        json_response = json.loads(response_content)
+    except Exception as e:
+        return HttpResponse(f"İyzico yanıtı işlenirken hata oluştu: {str(e)}")
+
+    # Artık 'json_response' bir sözlük olduğu için ['status'] şeklinde erişebiliriz
+    if json_response.get('status') == 'success':
+        form_content = json_response['checkoutFormContent']
         return render(request, 'odeme/odeme_ekrani.html', {'iyzico_form': form_content})
     else:
-        error_message = checkout_form_initialize_response.get('errorMessage', 'Bir hata oluştu')
-        # Hata mesajını ekrana basıyoruz ki sorunu net görelim
+        error_message = json_response.get('errorMessage', 'Bir hata oluştu')
         return HttpResponse(f"Ödeme başlatılamadı: {error_message} <br> <a href='/odeme/sepet/'>Sepete Dön</a>")
 
 
@@ -366,10 +375,22 @@ def odeme_sonuc(request):
     if request.method == 'POST':
         token = request.POST.get('token')
 
+        # --- 1. AYARLARI TEMİZLE (odeme_baslat ile aynı mantık) ---
+        api_key = str(settings.IYZICO_API_KEY).replace("'", "").replace('"', "").strip()
+        secret_key = str(settings.IYZICO_SECRET_KEY).replace("'", "").replace('"', "").strip()
+        base_url = str(settings.IYZICO_BASE_URL).replace("'", "").replace('"', "").strip()
+
+        if base_url.startswith("https://"):
+            base_url = base_url.replace("https://", "")
+        if base_url.startswith("http://"):
+            base_url = base_url.replace("http://", "")
+
+        base_url = base_url.rstrip('/')
+
         options = {
-            'api_key': settings.IYZICO_API_KEY,
-            'secret_key': settings.IYZICO_SECRET_KEY,
-            'base_url': settings.IYZICO_BASE_URL
+            'api_key': api_key,
+            'secret_key': secret_key,
+            'base_url': base_url
         }
 
         request_verification = {
@@ -378,12 +399,22 @@ def odeme_sonuc(request):
         }
 
         checkout_form = iyzipay.CheckoutForm()
-        response = checkout_form.retrieve(request_verification, options)
 
-        if response['status'] == 'success' and response['paymentStatus'] == 'SUCCESS':
+        # --- 2. YANITI AL VE JSON'A ÇEVİR ---
+        iyzico_raw_response = checkout_form.retrieve(request_verification, options)
+
+        try:
+            response_content = iyzico_raw_response.read().decode('utf-8')
+            response = json.loads(response_content)
+        except Exception as e:
+            messages.error(request, f"Ödeme doğrulama hatası: {str(e)}")
+            return redirect('odeme:sepeti_goruntule')
+
+        # Artık response bir sözlük (dictionary) olduğu için kullanabiliriz
+        if response.get('status') == 'success' and response.get('paymentStatus') == 'SUCCESS':
             # Ödeme Başarılı
             siparis_id = response['basketId']
-            islem_id = response['paymentId']
+            islem_id = response.get('paymentId', '')
 
             try:
                 siparis = Siparis.objects.get(id=siparis_id)
