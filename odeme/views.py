@@ -273,37 +273,38 @@ def odeme_sonuc(request):
             islem_id = response.get('paymentId', '')
 
             try:
-                # ATOMIC TRANSACTION
+                # ATOMIC TRANSACTION: Tüm işlemleri paket yapar, hata olursa geri alır
                 with transaction.atomic():
-                    # Siparişi kilitle
+                    # Siparişi kilitle (Çift işlem olmasın diye)
                     siparis = Siparis.objects.select_for_update().get(id=siparis_id)
 
                     if siparis.odeme_tamamlandi:
                         # Zaten işlenmişse direkt yönlendir
                         return redirect(reverse('kullanicilar:hesabim') + '?durum=zaten_odenmis')
 
+                    # 1. Siparişi Güncelle
                     siparis.odeme_tamamlandi = True
                     siparis.iyzico_transaction_id = islem_id
                     siparis.save()
 
-                    # SEPET TEMİZLİĞİ (Session kullanmadan, DB üzerinden)
-                    # Siparişin sahibi olan kullanıcının sepetini buluyoruz
+                    # 2. Sepeti Temizle (Session kullanmadan, DB üzerinden)
                     try:
-                        # Kullanıcının sepetini direkt veritabanından çekiyoruz
+                        # Sipariş sahibinin sepetini veritabanından bul
                         sepet = Sepet.objects.get(user=siparis.user)
 
                         # İndirim kodu varsa kullanım sayısını artır
                         if sepet.uygulanan_kupon:
+                            # F() ile veritabanı seviyesinde artış (Race condition önlemi)
                             IndirimKodu.objects.filter(id=sepet.uygulanan_kupon.id).update(
                                 kullanim_sayisi=F('kullanim_sayisi') + 1)
 
-                        # Sepeti Temizle
+                        # Sepet içeriğini ve kuponu temizle
                         sepet.uygulanan_kupon = None
                         sepet.save()
                         sepet.items.all().delete()
 
                     except Sepet.DoesNotExist:
-                        pass  # Kullanıcının sepeti yoksa işlem yapmaya gerek yok
+                        pass  # Kullanıcının sepeti yoksa (silinmişse) işlem yapmaya gerek yok
 
                 # BAŞARILI: Mesaj yerine URL parametresi kullanıyoruz
                 return redirect(reverse('kullanicilar:hesabim') + '?odeme=basarili')
@@ -311,13 +312,13 @@ def odeme_sonuc(request):
             except Siparis.DoesNotExist:
                 return HttpResponse("Sipariş bulunamadı.")
             except Exception as e:
-                # Loglama yapılabilir: logger.error(f"Hata: {e}")
+                # Hata durumunda loglama yapmak istersen: logger.error(f"Hata: {e}")
                 return redirect(reverse('odeme:sepeti_goruntule') + '?odeme=hata')
 
         else:
             # Ödeme Başarısız
             hata_mesaji = response.get('errorMessage', 'Ödeme alınamadı.')
-            # Hata mesajını url'de taşımak yerine genel bir hata kodu dönüyoruz
+            # Hata mesajını console'a basabilirsin ama kullanıcıya URL parametresi ile dönüyoruz
             return redirect(reverse('odeme:sepeti_goruntule') + '?odeme=basarisiz')
 
     return redirect('anasayfa')
