@@ -18,6 +18,8 @@ urlpatterns = [
 
     # --- ÖDEME ---
     path('odeme-yap/', views.odeme_yap, name='odeme_yap'),
+    path('baslat/<int:siparis_id>/', views.odeme_baslat, name='odeme_baslat'),
+    path('sonuc/', views.odeme_sonuc, name='odeme_sonuc'),
 
     # --- KİTAP GÖRÜNTÜLEME ---
     path('kitap/<int:kitap_id>/', views.kitap_detay_view, name='kitap_detay'),

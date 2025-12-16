@@ -130,6 +130,10 @@ class Siparis(models.Model):
     kargo_takip_no = models.CharField(max_length=100, blank=True, null=True, verbose_name="Kargo Takip No")
     kullanilan_kupon = models.CharField(max_length=50, blank=True, null=True, verbose_name="Kullanılan Kupon Kodu")
 
+    # --- İYZİCO ENTEGRASYONU İÇİN EKLENEN ALANLAR ---
+    odeme_tamamlandi = models.BooleanField(default=False, verbose_name="Ödeme Tamamlandı mı?")
+    iyzico_transaction_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="İyzico İşlem ID")
+
     class Meta:
         ordering = ['-tarih']
         verbose_name = "Sipariş"

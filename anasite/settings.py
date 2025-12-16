@@ -132,3 +132,9 @@ else:
 
 
 X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+# anasite/settings.py dosyasının en altına veya uygun bir yerine:
+
+IYZICO_API_KEY = config('IYZICO_API_KEY', default='')
+IYZICO_SECRET_KEY = config('IYZICO_SECRET_KEY', default='')
+IYZICO_BASE_URL = config('IYZICO_BASE_URL', default='https://sandbox-api.iyzipay.com')

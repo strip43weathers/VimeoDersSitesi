@@ -1,7 +1,10 @@
 # odeme/views.py
 
-from django.shortcuts import render, redirect, get_object_or_404
+import iyzipay
+from django.conf import settings
+from django.shortcuts import render, redirect, get_object_or_404, HttpResponse, reverse
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from .models import Kitap, Sepet, SepetUrunu, Siparis, SiparisUrunu, IndirimKodu
@@ -14,6 +17,16 @@ from datetime import timedelta
 
 
 # --- YARDIMCI FONKSİYONLAR ---
+
+def get_client_ip(request):
+    """Kullanıcının IP adresini alır (İyzico için gerekli)"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
 
 def _get_sepet(request):
     if request.user.is_authenticated:
@@ -139,10 +152,14 @@ def sepet_adet_guncelle(request, urun_id, islem):
     return redirect('odeme:sepeti_goruntule')
 
 
-# --- ÖDEME VE SİPARİŞ ---
+# --- ÖDEME VE SİPARİŞ (REVİZE EDİLDİ) ---
 
 @login_required
 def odeme_yap(request):
+    """
+    Bu view artık sadece adres bilgilerini alır ve 'Sipariş' objesini oluşturur.
+    Ödeme almak yerine, kullanıcıyı İyzico formunun olduğu 'odeme_baslat' view'ına yönlendirir.
+    """
     sepet = _get_sepet(request)
     if not sepet.items.exists():
         messages.warning(request, 'Sepetiniz boş.')
@@ -168,19 +185,20 @@ def odeme_yap(request):
             siparis = form.save(commit=False)
             siparis.user = request.user
             siparis.toplam_tutar = odenecek_tutar
+            siparis.odeme_tamamlandi = False  # Varsayılan olarak ödenmedi
 
             # Kupon İşlemleri
             if sepet.uygulanan_kupon:
                 siparis.kullanilan_kupon = sepet.uygulanan_kupon.kod
-                # Kullanım sayısını 1 artırıyoruz!
-                sepet.uygulanan_kupon.kullanim_sayisi += 1
-                sepet.uygulanan_kupon.save()
+                # Kullanım sayısını BURADA ARTIRMIYORUZ. Ödeme başarılı olunca artıracağız veya
+                # burada artırıp başarısız olursa düşeceğiz. Basitlik için ödeme sonucunda işlem yapacağız.
 
             siparis.save()
 
+            # Sipariş ürünlerini oluştur
             for item in sepet.items.all():
                 satis_fiyati = item.kitap.fiyat
-                if indirim_aktif:  # Ürün bazlı indirim gösterimi için (opsiyonel)
+                if indirim_aktif:
                     satis_fiyati = round(satis_fiyati * Decimal('0.90'), 2)
 
                 SiparisUrunu.objects.create(
@@ -190,12 +208,11 @@ def odeme_yap(request):
                     adet=item.adet
                 )
 
-            sepet.uygulanan_kupon = None
-            sepet.save()
-            sepet.items.all().delete()
+            # NOT: Sepeti burada BOŞALTMADIK. Ödeme başarılı olursa boşaltacağız.
 
-            messages.success(request, 'Siparişiniz başarıyla alındı!')
-            return redirect('kullanicilar:hesabim')
+            # İyzico ödeme ekranına yönlendir
+            return redirect('odeme:odeme_baslat', siparis_id=siparis.id)
+
     else:
         initial_data = {
             'ad': request.user.first_name,
@@ -216,6 +233,171 @@ def odeme_yap(request):
         'indirim_bitis_tarihi': indirim_bitis
     }
     return render(request, 'odeme/odeme_sayfasi.html', context)
+
+
+@login_required
+def odeme_baslat(request, siparis_id):
+    """
+    Oluşturulan sipariş için İyzico formu hazırlar ve ekrana basar.
+    """
+    siparis = get_object_or_404(Siparis, id=siparis_id, user=request.user)
+
+    if siparis.odeme_tamamlandi:
+        return redirect('kullanicilar:hesabim')
+
+    # İyzico Seçenekleri
+    options = {
+        'api_key': settings.IYZICO_API_KEY,
+        'secret_key': settings.IYZICO_SECRET_KEY,
+        'base_url': settings.IYZICO_BASE_URL
+    }
+
+    # Callback URL (Localhost veya Render için dinamik)
+    callback_url = request.build_absolute_uri(reverse('odeme:odeme_sonuc'))
+
+    request_iyzico = {
+        'locale': 'tr',
+        'conversationId': str(siparis.id),
+        'price': str(siparis.toplam_tutar),
+        'paidPrice': str(siparis.toplam_tutar),
+        'currency': 'TRY',
+        'basketId': str(siparis.id),
+        'paymentGroup': 'PRODUCT',
+        'callbackUrl': callback_url,
+        'enabledInstallments': ['1', '2', '3', '6', '9'],
+
+        'buyer': {
+            'id': str(request.user.id),
+            'name': siparis.ad,  # Formdan gelen adı kullanıyoruz
+            'surname': siparis.soyad,
+            'gsmNumber': siparis.telefon or '+905555555555',
+            'email': siparis.email,
+            'identityNumber': '11111111111',  # Fiziksel üründe TC gerekebilir, yoksa dummy
+            'lastLoginDate': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'registrationDate': request.user.date_joined.strftime('%Y-%m-%d %H:%M:%S'),
+            'registrationAddress': siparis.adres,
+            'ip': get_client_ip(request),
+            'city': 'Istanbul',  # Dinamik yapılabilir
+            'country': 'Turkey',
+            'zipCode': '34732'
+        },
+        'shippingAddress': {
+            'contactName': f"{siparis.ad} {siparis.soyad}",
+            'city': 'Istanbul',  # Adres formunda şehir yoksa varsayılan veya parse edilmeli
+            'country': 'Turkey',
+            'address': siparis.adres,
+            'zipCode': '34742'
+        },
+        'billingAddress': {
+            'contactName': f"{siparis.ad} {siparis.soyad}",
+            'city': 'Istanbul',
+            'country': 'Turkey',
+            'address': siparis.adres,
+            'zipCode': '34742'
+        },
+        'basketItems': []
+    }
+
+    # Siparişteki ürünleri İyzico sepetine ekle
+    for item in siparis.items.all():
+        request_iyzico['basketItems'].append({
+            'id': str(item.kitap.id),
+            'name': item.kitap.baslik,
+            'category1': 'Kitap',
+            'itemType': 'PHYSICAL',  # Fiziksel ürün olduğu için
+            'price': str(item.fiyat * item.adet)  # Adet * Fiyat olarak gönderiyoruz, iyzico mantığı
+        })
+
+    # Eğer indirimler sonrası sepet tutarı ile ürünlerin toplamı uyuşmazsa iyzico hata verebilir.
+    # Bu yüzden 'basketItems' toplamının 'price' ile aynı olduğundan emin olmak gerek.
+    # En güvenli yöntem tüm sepeti tek bir kalem olarak göndermektir (sorun çıkarsa bunu kullanabilirsin):
+    # request_iyzico['basketItems'] = [{
+    #     'id': '101',
+    #     'name': 'Siparis Toplami',
+    #     'category1': 'Genel',
+    #     'itemType': 'PHYSICAL',
+    #     'price': str(siparis.toplam_tutar)
+    # }]
+
+    checkout_form_initialize = iyzipay.CheckoutFormInitialize()
+    checkout_form_initialize_response = checkout_form_initialize.create(request_iyzico, options)
+
+    if checkout_form_initialize_response['status'] == 'success':
+        form_content = checkout_form_initialize_response['checkoutFormContent']
+        return render(request, 'odeme/odeme_ekrani.html', {'iyzico_form': form_content})
+    else:
+        error_message = checkout_form_initialize_response.get('errorMessage', 'Bir hata oluştu')
+        return HttpResponse(f"Ödeme başlatılamadı: {error_message} <br> <a href='/odeme/sepet/'>Sepete Dön</a>")
+
+
+@csrf_exempt
+def odeme_sonuc(request):
+    """
+    İyzico'nun POST ettiği sonucu karşılar.
+    """
+    if request.method == 'POST':
+        token = request.POST.get('token')
+
+        options = {
+            'api_key': settings.IYZICO_API_KEY,
+            'secret_key': settings.IYZICO_SECRET_KEY,
+            'base_url': settings.IYZICO_BASE_URL
+        }
+
+        request_verification = {
+            'locale': 'tr',
+            'token': token
+        }
+
+        checkout_form = iyzipay.CheckoutForm()
+        response = checkout_form.retrieve(request_verification, options)
+
+        if response['status'] == 'success' and response['paymentStatus'] == 'SUCCESS':
+            # Ödeme Başarılı
+            siparis_id = response['basketId']
+            islem_id = response['paymentId']
+
+            try:
+                siparis = Siparis.objects.get(id=siparis_id)
+                siparis.odeme_tamamlandi = True
+                siparis.iyzico_transaction_id = islem_id
+                siparis.save()
+
+                # Kupon kullanıldıysa kullanım sayısını şimdi artırıyoruz (veya modelde artırdıysak dokunmuyoruz)
+                # Sepet mantığı gereği, burada sepeti temizliyoruz.
+                sepet = _get_sepet(request)
+                if sepet.uygulanan_kupon:
+                    # Sipariş oluştururken kullanım sayısını artırmamıştık (odeme_yap'taki kodu sildim veya pas geçtim)
+                    # Doğrusu: Sipariş oluşturulurken kupon kodu siparişe string olarak kaydedildi.
+                    # Burada asıl IndirimKodu objesini bulup kullanım sayısını artırabiliriz.
+                    try:
+                        kupon = IndirimKodu.objects.get(kod=siparis.kullanilan_kupon)
+                        kupon.kullanim_sayisi += 1
+                        kupon.save()
+                    except IndirimKodu.DoesNotExist:
+                        pass
+
+                # Sepeti Temizle
+                sepet.uygulanan_kupon = None
+                sepet.save()
+                sepet.items.all().delete()
+
+                messages.success(request, "Ödemeniz başarıyla alındı. Siparişiniz hazırlanıyor.")
+                # Başarılı sayfasına veya sipariş detayına yönlendir
+                return redirect('kullanicilar:hesabim')  # Veya özel bir 'tesekkurler' sayfası
+
+            except Siparis.DoesNotExist:
+                return HttpResponse("Sipariş bulunamadı.")
+
+        else:
+            # Ödeme Başarısız
+            hata_mesaji = response.get('errorMessage', 'Ödeme alınamadı.')
+            context = {'hata': hata_mesaji}
+            # Basarisiz template'i yoksa basitçe render edebiliriz veya sepete yönlendirip hata basabiliriz.
+            messages.error(request, f"Ödeme Başarısız: {hata_mesaji}")
+            return redirect('odeme:sepeti_goruntule')
+
+    return redirect('anasayfa')
 
 
 # --- KİTAP GÖRÜNTÜLEME ---
