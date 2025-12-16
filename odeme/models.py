@@ -43,6 +43,7 @@ class Kitap(models.Model):
     baslik = models.CharField(max_length=200, verbose_name="Kitap Başlığı")
     aciklama = models.TextField(verbose_name="Açıklama", blank=True, null=True)
     fiyat = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Fiyat (TL)")
+    stok = models.PositiveIntegerField(default=0, verbose_name="Stok Adedi")
     fotograf = models.ImageField(upload_to='kitap_kapaklari/', blank=True, null=True, verbose_name="Kitap Kapağı")
     sira = models.IntegerField(default=0, verbose_name="Sıralama")
     onizleme_dosyasi = models.FileField(

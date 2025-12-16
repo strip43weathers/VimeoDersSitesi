@@ -12,6 +12,8 @@ from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
 import logging
+from django.core.mail import send_mail
+from django.conf import settings
 
 # Modeller ve Formlar
 from .models import Kitap, Sepet, SepetUrunu, Siparis, SiparisUrunu, IndirimKodu
@@ -125,8 +127,18 @@ def sepeti_goruntule(request):
 
 def sepete_ekle(request, kitap_id):
     kitap = get_object_or_404(Kitap, id=kitap_id)
+
+    if kitap.stok < 1:
+        messages.error(request, 'Üzgünüz, bu ürün stokta kalmadı.')
+        return redirect('odeme:kitap_listesi')
     sepet = _get_sepet(request)
     sepet_urunu, created = SepetUrunu.objects.get_or_create(sepet=sepet, kitap=kitap)
+
+    mevcut_adet = sepet_urunu.adet if not created else 0
+    if mevcut_adet + 1 > kitap.stok:
+        messages.warning(request, f'Stok yetersiz. Bu üründen en fazla {kitap.stok} adet alabilirsiniz.')
+        return redirect('odeme:sepeti_goruntule')
+
     if not created:
         sepet_urunu.adet += 1
         sepet_urunu.save()
@@ -148,8 +160,12 @@ def sepet_adet_guncelle(request, urun_id, islem):
     sepet = _get_sepet(request)
     urun = get_object_or_404(SepetUrunu, id=urun_id, sepet=sepet)
     if islem == 'arttir':
-        urun.adet += 1
-        urun.save()
+        if urun.adet + 1 <= urun.kitap.stok:
+            urun.adet += 1
+            urun.save()
+        else:
+            messages.warning(request, f"Stoktaki son ürüne ulaştınız (Maks: {urun.kitap.stok}).")
+
     elif islem == 'azalt':
         if urun.adet > 1:
             urun.adet -= 1
@@ -273,13 +289,12 @@ def odeme_sonuc(request):
             islem_id = response.get('paymentId', '')
 
             try:
-                # ATOMIC TRANSACTION: Tüm işlemleri paket yapar, hata olursa geri alır
+                # ATOMIC TRANSACTION
                 with transaction.atomic():
-                    # Siparişi kilitle (Çift işlem olmasın diye)
+                    # Siparişi kilitle
                     siparis = Siparis.objects.select_for_update().get(id=siparis_id)
 
                     if siparis.odeme_tamamlandi:
-                        # Zaten işlenmişse direkt yönlendir
                         return redirect(reverse('kullanicilar:hesabim') + '?durum=zaten_odenmis')
 
                     # 1. Siparişi Güncelle
@@ -287,26 +302,50 @@ def odeme_sonuc(request):
                     siparis.iyzico_transaction_id = islem_id
                     siparis.save()
 
-                    # 2. Sepeti Temizle (Session kullanmadan, DB üzerinden)
-                    try:
-                        # Sipariş sahibinin sepetini veritabanından bul
-                        sepet = Sepet.objects.get(user=siparis.user)
+                    # --- YENİ: STOKTAN DÜŞME ---
+                    for urun in siparis.items.all():
+                        # Kitap stoğunu azalt (F ifadesi kullanarak race condition önlenir)
+                        Kitap.objects.filter(id=urun.kitap.id).update(stok=F('stok') - urun.adet)
+                    # ---------------------------
 
-                        # İndirim kodu varsa kullanım sayısını artır
+                    # 2. Sepeti Temizle
+                    try:
+                        sepet = Sepet.objects.get(user=siparis.user)
                         if sepet.uygulanan_kupon:
-                            # F() ile veritabanı seviyesinde artış (Race condition önlemi)
                             IndirimKodu.objects.filter(id=sepet.uygulanan_kupon.id).update(
                                 kullanim_sayisi=F('kullanim_sayisi') + 1)
-
-                        # Sepet içeriğini ve kuponu temizle
                         sepet.uygulanan_kupon = None
                         sepet.save()
                         sepet.items.all().delete()
-
                     except Sepet.DoesNotExist:
-                        pass  # Kullanıcının sepeti yoksa (silinmişse) işlem yapmaya gerek yok
+                        pass
 
-                # BAŞARILI: Mesaj yerine URL parametresi kullanıyoruz
+                # --- YENİ: ADMİN MAİL BİLDİRİMİ (Transaction bloğunun dışında) ---
+                try:
+                    subject = f"Yeni Sipariş Var! - #{siparis.id}"
+                    message = f"""
+                                Tebrikler, yeni bir sipariş aldınız!
+
+                                Sipariş No: {siparis.id}
+                                Müşteri: {siparis.ad} {siparis.soyad}
+                                Tutar: {siparis.toplam_tutar} TL
+                                Tarih: {siparis.tarih}
+
+                                Admin panelinden detayları kontrol edebilirsiniz.
+                                """
+                    # Gönderici ve Alıcı (Alıcı listesine kendi mailini yaz)
+                    send_mail(
+                        subject,
+                        message,
+                        settings.EMAIL_HOST_USER,
+                        ['furkanaygun2004@gmail.com'],  # <-- BURAYA KENDİ MAİLİNİ YAZ
+                        fail_silently=True
+                    )
+                except Exception as e:
+                    # Mail gitmezse sistem durmasın, loglayıp geçelim
+                    logger.error(f"Mail gönderme hatası: {e}")
+                # -----------------------------------------------------------------
+
                 return redirect(reverse('kullanicilar:hesabim') + '?odeme=basarili')
 
             except Siparis.DoesNotExist:
