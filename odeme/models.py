@@ -122,9 +122,9 @@ class Siparis(models.Model):
     email = models.EmailField(verbose_name="E-posta")
     telefon = models.CharField(max_length=20, verbose_name="Telefon Numarası")
     tc_kimlik = models.CharField(max_length=11, verbose_name="TC Kimlik No")
-    sehir = models.CharField(max_length=50, verbose_name="Şehir", default="İstanbul")
-    posta_kodu = models.CharField(max_length=10, verbose_name="Posta Kodu", default="34000")
-    ulke = models.CharField(max_length=50, verbose_name="Ülke", default="Turkey")
+    sehir = models.CharField(max_length=50, verbose_name="Şehir")
+    posta_kodu = models.CharField(max_length=10, verbose_name="Posta Kodu")
+    ulke = models.CharField(max_length=50, verbose_name="Ülke")
     adres = models.TextField(verbose_name="Teslimat Adresi")
 
     toplam_tutar = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Toplam Tutar")
