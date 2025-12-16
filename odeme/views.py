@@ -1,26 +1,33 @@
 # odeme/views.py
 
-import iyzipay
-import json
-from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponse, reverse
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.contrib import messages
+from django.db import transaction
+from django.db.models import F
+from django.utils import timezone
+from datetime import timedelta
+from decimal import Decimal
+import logging
+
+# Modeller ve Formlar
 from .models import Kitap, Sepet, SepetUrunu, Siparis, SiparisUrunu, IndirimKodu
 from .forms import SiparisForm, IndirimKoduForm
 from kullanicilar.models import Profil
-from decimal import Decimal
-import uuid
-from django.utils import timezone
-from datetime import timedelta
+
+# Servis (Yeni Eklediğimiz Dosya)
+from .services import IyzicoService
+
+logger = logging.getLogger(__name__)
 
 
 # --- YARDIMCI FONKSİYONLAR ---
 
 def get_client_ip(request):
-    """Kullanıcının IP adresini alır (İyzico için gerekli)"""
+    """Kullanıcının IP adresini alır"""
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
         ip = x_forwarded_for.split(',')[0]
@@ -93,7 +100,6 @@ def kupon_kaldir(request):
 def sepeti_goruntule(request):
     sepet = _get_sepet(request)
 
-    # Sepetteki kupon artık geçersizse (örn: başkası son kullanma hakkını kullandıysa) kaldır
     if sepet.uygulanan_kupon and not sepet.uygulanan_kupon.gecerli_mi:
         messages.warning(request, f"Sepetinizdeki '{sepet.uygulanan_kupon.kod}' kuponunun süresi veya limiti doldu.")
         sepet.uygulanan_kupon = None
@@ -153,20 +159,15 @@ def sepet_adet_guncelle(request, urun_id, islem):
     return redirect('odeme:sepeti_goruntule')
 
 
-# --- ÖDEME VE SİPARİŞ (REVİZE EDİLDİ) ---
+# --- ÖDEME VE SİPARİŞ ---
 
 @login_required
 def odeme_yap(request):
-    """
-    Bu view artık sadece adres bilgilerini alır ve 'Sipariş' objesini oluşturur.
-    Ödeme almak yerine, kullanıcıyı İyzico formunun olduğu 'odeme_baslat' view'ına yönlendirir.
-    """
     sepet = _get_sepet(request)
     if not sepet.items.exists():
         messages.warning(request, 'Sepetiniz boş.')
         return redirect('odeme:kitap_listesi')
 
-    # Son kontrol: Kupon hala geçerli mi?
     if sepet.uygulanan_kupon and not sepet.uygulanan_kupon.gecerli_mi:
         messages.error(request, "Uygulanan kuponun limiti doldu veya süresi geçti.")
         sepet.uygulanan_kupon = None
@@ -186,16 +187,13 @@ def odeme_yap(request):
             siparis = form.save(commit=False)
             siparis.user = request.user
             siparis.toplam_tutar = odenecek_tutar
-            siparis.odeme_tamamlandi = False  # Varsayılan olarak ödenmedi
+            siparis.odeme_tamamlandi = False
 
-            # Kupon İşlemleri
             if sepet.uygulanan_kupon:
                 siparis.kullanilan_kupon = sepet.uygulanan_kupon.kod
-                # Kullanım sayısını BURADA ARTIRMIYORUZ. Ödeme başarılı olunca artıracağız.
 
             siparis.save()
 
-            # Sipariş ürünlerini oluştur
             for item in sepet.items.all():
                 satis_fiyati = item.kitap.fiyat
                 if indirim_aktif:
@@ -208,9 +206,6 @@ def odeme_yap(request):
                     adet=item.adet
                 )
 
-            # NOT: Sepeti burada BOŞALTMADIK. Ödeme başarılı olursa boşaltacağız.
-
-            # İyzico ödeme ekranına yönlendir
             return redirect('odeme:odeme_baslat', siparis_id=siparis.id)
 
     else:
@@ -238,216 +233,92 @@ def odeme_yap(request):
 @login_required
 def odeme_baslat(request, siparis_id):
     """
-    Oluşturulan sipariş için İyzico formu hazırlar ve ekrana basar.
+    Siparişi alır, IyzicoService kullanarak formu hazırlar ve render eder.
     """
     siparis = get_object_or_404(Siparis, id=siparis_id, user=request.user)
 
     if siparis.odeme_tamamlandi:
         return redirect('kullanicilar:hesabim')
 
-    # --- KESİN ÇÖZÜM: API ve URL AYARLARI ---
-
-    # 1. API Anahtarlarını Temizle (Tırnak işaretlerini kaldır)
-    api_key = str(settings.IYZICO_API_KEY).replace("'", "").replace('"', "").strip()
-    secret_key = str(settings.IYZICO_SECRET_KEY).replace("'", "").replace('"', "").strip()
-
-    # 2. Base URL'i Temizle ve Protokolü Kaldır
-    # Kütüphaneniz 'https://' kısmını istemiyor, sadece domain (site adı) istiyor.
-    base_url = str(settings.IYZICO_BASE_URL).replace("'", "").replace('"', "").strip()
-
-    # Eğer URL 'https://' veya 'http://' ile başlıyorsa bunları siliyoruz.
-    if base_url.startswith("https://"):
-        base_url = base_url.replace("https://", "")
-    if base_url.startswith("http://"):
-        base_url = base_url.replace("http://", "")
-
-    # Temizlenmiş domain sonundaki olası '/' işaretini de kaldıralım
-    base_url = base_url.rstrip('/')
-
-    # 3. İyzico Seçeneklerini Sözlük (Dictionary) Olarak Hazırla
-    options = {
-        'api_key': api_key,
-        'secret_key': secret_key,
-        'base_url': base_url  # Sadece sandbox-api.iyzipay.com gönderir
-    }
-
-    # NOT: Eğer yukarıdaki kod yine aynı hatayı verirse, aşağıdaki satırın yorumunu kaldırıp deneyin:
-    # options['base_url'] = base_url  # Sadece 'sandbox-api.iyzipay.com' gönderir
-
-    # Callback URL
+    # Gerekli bilgileri hazırla
+    ip = get_client_ip(request)
     callback_url = request.build_absolute_uri(reverse('odeme:odeme_sonuc'))
 
-    request_iyzico = {
-        'locale': 'tr',
-        'conversationId': str(siparis.id),
-        'price': str(siparis.toplam_tutar),
-        'paidPrice': str(siparis.toplam_tutar),
-        'currency': 'TRY',
-        'basketId': str(siparis.id),
-        'paymentGroup': 'PRODUCT',
-        'callbackUrl': callback_url,
-        'enabledInstallments': ['1', '2', '3', '6', '9'],
+    # Servisi Çağır
+    result = IyzicoService.create_checkout_form(siparis, request.user, ip, callback_url)
 
-        'buyer': {
-            'id': str(request.user.id),
-            'name': siparis.ad,
-            'surname': siparis.soyad,
-            'gsmNumber': siparis.telefon or '+905555555555',
-            'email': siparis.email,
-            'identityNumber': siparis.tc_kimlik,
-            'lastLoginDate': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'registrationDate': request.user.date_joined.strftime('%Y-%m-%d %H:%M:%S'),
-            'registrationAddress': siparis.adres,
-            'ip': get_client_ip(request),
-            'city': 'Istanbul',
-            'country': 'Turkey',
-            'zipCode': '34732'
-        },
-        'shippingAddress': {
-            'contactName': f"{siparis.ad} {siparis.soyad}",
-            'city': 'Istanbul',
-            'country': 'Turkey',
-            'address': siparis.adres,
-            'zipCode': '34742'
-        },
-        'billingAddress': {
-            'contactName': f"{siparis.ad} {siparis.soyad}",
-            'city': 'Istanbul',
-            'country': 'Turkey',
-            'address': siparis.adres,
-            'zipCode': '34742'
-        },
-        'basketItems': []
-    }
-
-    # Sepet Toplamı ve Ürün Fiyat Kontrolü
-    iyzico_basket_items = []
-    hesaplanan_toplam = Decimal('0.00')
-
-    for item in siparis.items.all():
-        item_price = item.fiyat * item.adet
-        hesaplanan_toplam += item_price
-
-        iyzico_basket_items.append({
-            'id': str(item.kitap.id),
-            'name': item.kitap.baslik,
-            'category1': 'Kitap',
-            'itemType': 'PHYSICAL',
-            'price': str(item_price)
-        })
-
-    if hesaplanan_toplam != siparis.toplam_tutar:
-        iyzico_basket_items = [{
-            'id': str(siparis.id),
-            'name': 'Siparis Toplami',
-            'category1': 'Genel',
-            'itemType': 'PHYSICAL',
-            'price': str(siparis.toplam_tutar)
-        }]
-
-    request_iyzico['basketItems'] = iyzico_basket_items
-
-    checkout_form_initialize = iyzipay.CheckoutFormInitialize()
-    # Yanıtı ham (raw) HTTPResponse nesnesi olarak alıyoruz
-    iyzico_raw_response = checkout_form_initialize.create(request_iyzico, options)
-
-    try:
-        # Ham yanıtı okuyup JSON formatına çeviriyoruz
-        response_content = iyzico_raw_response.read().decode('utf-8')
-        json_response = json.loads(response_content)
-    except Exception as e:
-        return HttpResponse(f"İyzico yanıtı işlenirken hata oluştu: {str(e)}")
-
-    # Artık 'json_response' bir sözlük olduğu için ['status'] şeklinde erişebiliriz
-    if json_response.get('status') == 'success':
-        form_content = json_response['checkoutFormContent']
+    if result.get('status') == 'success':
+        form_content = result['checkoutFormContent']
         return render(request, 'odeme/odeme_ekrani.html', {'iyzico_form': form_content})
     else:
-        error_message = json_response.get('errorMessage', 'Bir hata oluştu')
+        error_message = result.get('errorMessage', 'Bilinmeyen bir hata oluştu')
         return HttpResponse(f"Ödeme başlatılamadı: {error_message} <br> <a href='/odeme/sepet/'>Sepete Dön</a>")
 
 
 @csrf_exempt
 def odeme_sonuc(request):
     """
-    İyzico'nun POST ettiği sonucu karşılar.
+    İyzico dönüşünü karşılar.
+    ÖNEMLİ: Bu fonksiyonda request.session veya messages KULLANILMAMALIDIR.
+    Aksi takdirde kullanıcı çıkış yapar (Logout sorunu).
     """
     if request.method == 'POST':
         token = request.POST.get('token')
 
-        # --- 1. AYARLARI TEMİZLE (odeme_baslat ile aynı mantık) ---
-        api_key = str(settings.IYZICO_API_KEY).replace("'", "").replace('"', "").strip()
-        secret_key = str(settings.IYZICO_SECRET_KEY).replace("'", "").replace('"', "").strip()
-        base_url = str(settings.IYZICO_BASE_URL).replace("'", "").replace('"', "").strip()
+        # Servisten sonucu sorgula
+        response = IyzicoService.retrieve_checkout_form_result(token)
 
-        if base_url.startswith("https://"):
-            base_url = base_url.replace("https://", "")
-        if base_url.startswith("http://"):
-            base_url = base_url.replace("http://", "")
-
-        base_url = base_url.rstrip('/')
-
-        options = {
-            'api_key': api_key,
-            'secret_key': secret_key,
-            'base_url': base_url
-        }
-
-        request_verification = {
-            'locale': 'tr',
-            'token': token
-        }
-
-        checkout_form = iyzipay.CheckoutForm()
-
-        # --- 2. YANITI AL VE JSON'A ÇEVİR ---
-        iyzico_raw_response = checkout_form.retrieve(request_verification, options)
-
-        try:
-            response_content = iyzico_raw_response.read().decode('utf-8')
-            response = json.loads(response_content)
-        except Exception as e:
-            messages.error(request, f"Ödeme doğrulama hatası: {str(e)}")
-            return redirect('odeme:sepeti_goruntule')
-
-        # Artık response bir sözlük (dictionary) olduğu için kullanabiliriz
         if response.get('status') == 'success' and response.get('paymentStatus') == 'SUCCESS':
-            # Ödeme Başarılı
             siparis_id = response['basketId']
             islem_id = response.get('paymentId', '')
 
             try:
-                siparis = Siparis.objects.get(id=siparis_id)
-                siparis.odeme_tamamlandi = True
-                siparis.iyzico_transaction_id = islem_id
-                siparis.save()
+                # ATOMIC TRANSACTION
+                with transaction.atomic():
+                    # Siparişi kilitle
+                    siparis = Siparis.objects.select_for_update().get(id=siparis_id)
 
-                # Kupon kullanıldıysa kullanım sayısını artır
-                sepet = _get_sepet(request)
-                if sepet.uygulanan_kupon:
+                    if siparis.odeme_tamamlandi:
+                        # Zaten işlenmişse direkt yönlendir
+                        return redirect(reverse('kullanicilar:hesabim') + '?durum=zaten_odenmis')
+
+                    siparis.odeme_tamamlandi = True
+                    siparis.iyzico_transaction_id = islem_id
+                    siparis.save()
+
+                    # SEPET TEMİZLİĞİ (Session kullanmadan, DB üzerinden)
+                    # Siparişin sahibi olan kullanıcının sepetini buluyoruz
                     try:
-                        kupon = IndirimKodu.objects.get(kod=siparis.kullanilan_kupon)
-                        kupon.kullanim_sayisi += 1
-                        kupon.save()
-                    except IndirimKodu.DoesNotExist:
-                        pass
+                        # Kullanıcının sepetini direkt veritabanından çekiyoruz
+                        sepet = Sepet.objects.get(user=siparis.user)
 
-                # Sepeti Temizle
-                sepet.uygulanan_kupon = None
-                sepet.save()
-                sepet.items.all().delete()
+                        # İndirim kodu varsa kullanım sayısını artır
+                        if sepet.uygulanan_kupon:
+                            IndirimKodu.objects.filter(id=sepet.uygulanan_kupon.id).update(
+                                kullanim_sayisi=F('kullanim_sayisi') + 1)
 
-                messages.success(request, "Ödemeniz başarıyla alındı. Siparişiniz hazırlanıyor.")
-                return redirect('kullanicilar:hesabim')
+                        # Sepeti Temizle
+                        sepet.uygulanan_kupon = None
+                        sepet.save()
+                        sepet.items.all().delete()
+
+                    except Sepet.DoesNotExist:
+                        pass  # Kullanıcının sepeti yoksa işlem yapmaya gerek yok
+
+                # BAŞARILI: Mesaj yerine URL parametresi kullanıyoruz
+                return redirect(reverse('kullanicilar:hesabim') + '?odeme=basarili')
 
             except Siparis.DoesNotExist:
                 return HttpResponse("Sipariş bulunamadı.")
+            except Exception as e:
+                # Loglama yapılabilir: logger.error(f"Hata: {e}")
+                return redirect(reverse('odeme:sepeti_goruntule') + '?odeme=hata')
 
         else:
             # Ödeme Başarısız
             hata_mesaji = response.get('errorMessage', 'Ödeme alınamadı.')
-            messages.error(request, f"Ödeme Başarısız: {hata_mesaji}")
-            return redirect('odeme:sepeti_goruntule')
+            # Hata mesajını url'de taşımak yerine genel bir hata kodu dönüyoruz
+            return redirect(reverse('odeme:sepeti_goruntule') + '?odeme=basarisiz')
 
     return redirect('anasayfa')
 
