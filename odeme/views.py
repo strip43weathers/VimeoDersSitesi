@@ -358,7 +358,7 @@ def odeme_sonuc(request):
             except Siparis.DoesNotExist:
                 return HttpResponse("Sipariş bulunamadı.")
             except Exception as e:
-                # Hata durumunda loglama yapmak istersen: logger.error(f"Hata: {e}")
+                logger.error(f"KRİTİK HATA - Ödeme Sonrası İşlem Başarısız: {e}")  # Yorumdan çıkardık
                 return redirect(reverse('odeme:sepeti_goruntule') + '?odeme=hata')
 
         else:
