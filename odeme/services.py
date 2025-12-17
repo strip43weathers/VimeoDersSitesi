@@ -48,6 +48,7 @@ class IyzicoService:
             'basketId': str(siparis.id),
             'paymentGroup': 'PRODUCT',
             'callbackUrl': callback_url,
+            # ... (Adres ve alıcı bilgileri aynen kalacak) ...
             'enabledInstallments': ['1', '2', '3', '6', '9'],
             'buyer': {
                 'id': str(user.id),
@@ -96,23 +97,36 @@ class IyzicoService:
                 'price': str(item_price)
             })
 
-        # Kuruş farkı kontrolü
-        if hesaplanan_toplam != siparis.toplam_tutar:
-            iyzico_basket_items = [{
-                'id': str(siparis.id),
-                'name': 'Siparis Toplami',
-                'category1': 'Genel',
-                'itemType': 'PHYSICAL',
-                'price': str(siparis.toplam_tutar)
-            }]
+        # --- ROUNDING ERROR (KURUŞ FARKI) DÜZELTMESİ ---
+        # Amaç: İyzico'ya gönderilen kalemlerin toplamı, siparişin toplam tutarına tam olarak eşit olmalı.
+
+        fark = siparis.toplam_tutar - hesaplanan_toplam
+
+        if fark != 0 and len(iyzico_basket_items) > 0:
+            # Farkı son kaleme yansıt
+            son_kalem = iyzico_basket_items[-1]
+            yeni_fiyat = Decimal(son_kalem['price']) + fark
+
+            # Eğer fark yüzünden fiyat eksiye düşerse (çok nadir), mecburen 'Siparis Toplami' yöntemine dön
+            if yeni_fiyat <= 0:
+                iyzico_basket_items = [{
+                    'id': str(siparis.id),
+                    'name': 'Siparis Toplami',
+                    'category1': 'Genel',
+                    'itemType': 'PHYSICAL',
+                    'price': str(siparis.toplam_tutar)
+                }]
+            else:
+                son_kalem['price'] = str(yeni_fiyat)
+                # Not: Son kalemin fiyatını güncelledik, böylece toplamlar eşitlendi.
 
         request_iyzico['basketItems'] = iyzico_basket_items
+        # ------------------------------------------------
 
         # İsteği Gönder
         checkout_form_initialize = iyzipay.CheckoutFormInitialize()
         raw_response = checkout_form_initialize.create(request_iyzico, options)
 
-        # Yanıtı işle ve döndür
         try:
             content = raw_response.read().decode('utf-8')
             return json.loads(content)

@@ -282,8 +282,6 @@ def odeme_baslat(request, siparis_id):
 def odeme_sonuc(request):
     """
     İyzico dönüşünü karşılar.
-    ÖNEMLİ: Bu fonksiyonda request.session veya messages KULLANILMAMALIDIR.
-    Aksi takdirde kullanıcı çıkış yapar (Logout sorunu).
     """
     if request.method == 'POST':
         token = request.POST.get('token')
@@ -296,7 +294,7 @@ def odeme_sonuc(request):
             islem_id = response.get('paymentId', '')
 
             try:
-                # ATOMIC TRANSACTION
+                # ATOMIC TRANSACTION BAŞLANGICI
                 with transaction.atomic():
                     # Siparişi kilitle
                     siparis = Siparis.objects.select_for_update().get(id=siparis_id)
@@ -304,18 +302,30 @@ def odeme_sonuc(request):
                     if siparis.odeme_tamamlandi:
                         return redirect(reverse('kullanicilar:hesabim') + '?durum=zaten_odenmis')
 
-                    # 1. Siparişi Güncelle
+                    # 1. Stok Kontrolü ve Düşümü (YARIŞ DURUMU ÖNLEMİ BURADA)
+                    # Önce stokları kontrol et, sorun varsa işlemi iptal et (rollback)
+                    for urun in siparis.items.all():
+                        # Kitabı kilitliyoruz ki başka işlem araya girmesin
+                        kitap = Kitap.objects.select_for_update().get(id=urun.kitap.id)
+
+                        if kitap.stok < urun.adet:
+                            # KRİTİK: Ödeme alındı ama stok yok!
+                            # Bu noktada bir Exception fırlatarak transaction'ı geri alıyoruz.
+                            # Sipariş "tamamlandı" olarak işaretlenmeyecek.
+                            # Admin bu durumu loglardan görüp manuel iade yapabilir.
+                            logger.error(f"Sipariş ID: {siparis.id} için stok yetersiz! Kitap: {kitap.baslik}")
+                            raise Exception(f"Stok yetersiz: {kitap.baslik}")
+
+                        # Stok yeterliyse düş
+                        kitap.stok -= urun.adet
+                        kitap.save()
+
+                    # 2. Siparişi Güncelle (Stok başarıyla düştüyse buraya gelir)
                     siparis.odeme_tamamlandi = True
                     siparis.iyzico_transaction_id = islem_id
                     siparis.save()
 
-                    # --- YENİ: STOKTAN DÜŞME ---
-                    for urun in siparis.items.all():
-                        # Kitap stoğunu azalt (F ifadesi kullanarak race condition önlenir)
-                        Kitap.objects.filter(id=urun.kitap.id).update(stok=F('stok') - urun.adet)
-                    # ---------------------------
-
-                    # 2. Sepeti Temizle
+                    # 3. Sepeti Temizle
                     try:
                         sepet = Sepet.objects.get(user=siparis.user)
                         if sepet.uygulanan_kupon:
@@ -327,44 +337,34 @@ def odeme_sonuc(request):
                     except Sepet.DoesNotExist:
                         pass
 
-                # --- YENİ: ADMİN MAİL BİLDİRİMİ (Transaction bloğunun dışında) ---
+                # --- Müşteriye ve Admine Bildirim (Transaction dışı) ---
+                # ... (Mail gönderme kodları aynen kalabilir) ...
                 try:
                     subject = f"Yeni Sipariş Var! - #{siparis.id}"
                     message = f"""
                                 Tebrikler, yeni bir sipariş aldınız!
-
                                 Sipariş No: {siparis.id}
-                                Müşteri: {siparis.ad} {siparis.soyad}
                                 Tutar: {siparis.toplam_tutar} TL
-                                Tarih: {siparis.tarih}
-
-                                Admin panelinden detayları kontrol edebilirsiniz.
                                 """
-                    # Gönderici ve Alıcı (Alıcı listesine kendi mailini yaz)
                     send_mail(
-                        subject,
-                        message,
-                        settings.EMAIL_HOST_USER,
-                        [settings.SIPARIS_BILDIRIM_MAILI],
-                        fail_silently=True
+                        subject, message, settings.EMAIL_HOST_USER,
+                        [settings.SIPARIS_BILDIRIM_MAILI], fail_silently=True
                     )
                 except Exception as e:
-                    # Mail gitmezse sistem durmasın, loglayıp geçelim
                     logger.error(f"Mail gönderme hatası: {e}")
-                # -----------------------------------------------------------------
 
                 return redirect(reverse('kullanicilar:hesabim') + '?odeme=basarili')
 
             except Siparis.DoesNotExist:
                 return HttpResponse("Sipariş bulunamadı.")
             except Exception as e:
-                logger.error(f"KRİTİK HATA - Ödeme Sonrası İşlem Başarısız: {e}")  # Yorumdan çıkardık
-                return redirect(reverse('odeme:sepeti_goruntule') + '?odeme=hata')
+                # Stok hatası veya başka bir hata olduğunda buraya düşer
+                logger.error(f"Ödeme Sonrası İşlem Hatası: {e}")
+                # Kullanıcıya "İşleminiz inceleniyor" veya "Hata" mesajı dönebilirsin
+                return redirect(reverse('odeme:sepeti_goruntule') + '?odeme=stok_hatasi_veya_sistem')
 
         else:
-            # Ödeme Başarısız
             hata_mesaji = response.get('errorMessage', 'Ödeme alınamadı.')
-            # Hata mesajını console'a basabilirsin ama kullanıcıya URL parametresi ile dönüyoruz
             return redirect(reverse('odeme:sepeti_goruntule') + '?odeme=basarisiz')
 
     return redirect('anasayfa')

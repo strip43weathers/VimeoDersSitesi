@@ -144,3 +144,6 @@ IYZICO_BASE_URL = config('IYZICO_BASE_URL', default='https://sandbox-api.iyzipay
 
 
 SIPARIS_BILDIRIM_MAILI = "furkanaygun2004@gmail.com"
+
+# settings.py
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
