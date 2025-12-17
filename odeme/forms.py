@@ -28,3 +28,6 @@ class IndirimKoduForm(forms.Form):
         label='İndirim Kodu',
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kupon Kodu'})
     )
+
+
+#a
