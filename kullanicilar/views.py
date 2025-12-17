@@ -32,5 +32,8 @@ def kayit_view(request):
 
 @login_required
 def hesabim_view(request):
-    siparisler = Siparis.objects.filter(user=request.user).order_by('-tarih')
+    # DÜZELTME BURADA YAPILDI:
+    # Sadece 'odeme_tamamlandi=True' olan siparişleri getiriyoruz.
+    siparisler = Siparis.objects.filter(user=request.user, odeme_tamamlandi=True).order_by('-tarih')
+
     return render(request, 'kullanicilar/hesabim.html', {'siparisler': siparisler})

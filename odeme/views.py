@@ -377,9 +377,16 @@ def odeme_sonuc(request):
                 logger.error(f"Ödeme Sonrası Kritik Sistem Hatası: {e}")
                 return redirect(reverse('odeme:sepeti_goruntule') + '?odeme=sistem_hatasi')
 
+
         else:
-            hata_mesaji = response.get('errorMessage', 'Ödeme alınamadı.')
-            return redirect(reverse('odeme:sepeti_goruntule') + '?odeme=basarisiz')
+
+            hata_mesaji = response.get('errorMessage', 'Ödeme işlemi başarısız oldu.')
+
+            # Hata mesajını ekrana basılacak mesajlar listesine ekle
+
+            messages.error(request, f"Ödeme Başarısız: {hata_mesaji}")
+
+            return redirect('odeme:sepeti_goruntule')
 
     return redirect('anasayfa')
 

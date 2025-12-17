@@ -147,3 +147,10 @@ SIPARIS_BILDIRIM_MAILI = "furkanaygun2004@gmail.com"
 
 # settings.py
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://vimeo-ders-sitesi.onrender.com',
+    'https://www.romingoakademi.com',
+    'https://romingoakademi.com'
+]

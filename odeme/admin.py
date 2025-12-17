@@ -57,11 +57,40 @@ class SiparisUrunuInline(admin.TabularInline):
 
 @admin.register(Siparis)
 class SiparisAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'ad', 'soyad', 'toplam_tutar', 'kullanilan_kupon', 'durum', 'tarih')
-    list_filter = ('durum', 'tarih')
-    search_fields = ('ad', 'soyad', 'email', 'telefon', 'user__username', 'kargo_takip_no', 'kullanilan_kupon')
+    # 1. 'odeme_tamamlandi' alanını listeye ekledik.
+    # Django bunu otomatik olarak yeşil tik veya kırmızı çarpı ikonu olarak gösterir.
+    list_display = (
+        'id',
+        'user',
+        'ad',
+        'soyad',
+        'toplam_tutar',
+        'odeme_tamamlandi',  # <--- BURASI EKLENDİ (Ödeme Durumu Sütunu)
+        'durum',
+        'tarih'
+    )
+
+    # 2. Yan panele filtreleme ekledik.
+    # Artık sağ taraftan "Evet"i seçip sadece parası alınanları görebilirsin.
+    list_filter = ('odeme_tamamlandi', 'durum', 'tarih')  # <--- BURASI GÜNCELLENDİ
+
+    # 3. İyzico işlem numarasına göre arama yapabilmek için ekleme yaptık.
+    search_fields = (
+        'ad',
+        'soyad',
+        'email',
+        'telefon',
+        'user__username',
+        'kargo_takip_no',
+        'kullanilan_kupon',
+        'iyzico_transaction_id'  # <--- EKLENDİ (İşlem no ile arama)
+    )
+
     inlines = [SiparisUrunuInline]
-    readonly_fields = ('tarih', 'toplam_tutar', 'kullanilan_kupon')
+
+    # İyzico ID'si elle değiştirilmesin diye readonly yaptık.
+    readonly_fields = ('tarih', 'toplam_tutar', 'kullanilan_kupon', 'iyzico_transaction_id')
+
     list_editable = ('durum',)
 
 
