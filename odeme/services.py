@@ -48,7 +48,6 @@ class IyzicoService:
             'basketId': str(siparis.id),
             'paymentGroup': 'PRODUCT',
             'callbackUrl': callback_url,
-            # ... (Adres ve alıcı bilgileri) ...
             'enabledInstallments': ['1', '2', '3', '6', '9'],
             'buyer': {
                 'id': str(user.id),
@@ -140,7 +139,7 @@ class IyzicoService:
     @staticmethod
     def retrieve_checkout_form_result(token):
         """
-        Ödeme sonucunu İyzico'dan sorgular.
+        Ödeme sonucunu İyzico'dan sorgular (Checkout Form Dönüşü İçin).
         """
         options = IyzicoService.get_options()
         request = {
@@ -150,6 +149,28 @@ class IyzicoService:
 
         checkout_form = iyzipay.CheckoutForm()
         raw_response = checkout_form.retrieve(request, options)
+
+        try:
+            content = raw_response.read().decode('utf-8')
+            return json.loads(content)
+        except Exception as e:
+            return {'status': 'failure', 'errorMessage': f'JSON Decode Hatası: {str(e)}'}
+
+    @staticmethod
+    def siparis_durumu_sorgula(siparis_id):
+        """
+        Token olmadan, sadece sipariş ID (conversationId) ile ödeme durumunu sorgular.
+        Admin panelindeki manuel kontrol veya Cron Job için kullanılır.
+        """
+        options = IyzicoService.get_options()
+        request = {
+            'locale': 'tr',
+            'conversationId': str(siparis_id)
+        }
+
+        # Payment sınıfı ile genel ödeme sorgusu yapılır
+        payment = iyzipay.Payment()
+        raw_response = payment.retrieve(request, options)
 
         try:
             content = raw_response.read().decode('utf-8')

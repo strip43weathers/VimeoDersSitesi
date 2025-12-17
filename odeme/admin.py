@@ -1,7 +1,16 @@
 # odeme/admin.py
 
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.utils.html import format_html
+from django.urls import path, reverse
+from django.shortcuts import redirect, get_object_or_404
+from django.db import transaction
+from django.db.models import F
+
+# Modeller
 from .models import Kitap, Sepet, SepetUrunu, Siparis, SiparisUrunu, IndirimKodu
+# Servis (Sorgulama işlemi için gerekli)
+from .services import IyzicoService
 
 
 # --- KUPON ADMIN ---
@@ -57,24 +66,21 @@ class SiparisUrunuInline(admin.TabularInline):
 
 @admin.register(Siparis)
 class SiparisAdmin(admin.ModelAdmin):
-    # 1. 'odeme_tamamlandi' alanını listeye ekledik.
-    # Django bunu otomatik olarak yeşil tik veya kırmızı çarpı ikonu olarak gösterir.
+    # 1. 'iyzico_kontrol_butonu'nu listeye ekledik.
     list_display = (
         'id',
         'user',
         'ad',
         'soyad',
         'toplam_tutar',
-        'odeme_tamamlandi',  # <--- BURASI EKLENDİ (Ödeme Durumu Sütunu)
+        'odeme_tamamlandi',
         'durum',
-        'tarih'
+        'tarih',
+        'iyzico_kontrol_butonu'  # <--- YENİ EKLENEN BUTON
     )
 
-    # 2. Yan panele filtreleme ekledik.
-    # Artık sağ taraftan "Evet"i seçip sadece parası alınanları görebilirsin.
-    list_filter = ('odeme_tamamlandi', 'durum', 'tarih')  # <--- BURASI GÜNCELLENDİ
+    list_filter = ('odeme_tamamlandi', 'durum', 'tarih')
 
-    # 3. İyzico işlem numarasına göre arama yapabilmek için ekleme yaptık.
     search_fields = (
         'ad',
         'soyad',
@@ -83,15 +89,121 @@ class SiparisAdmin(admin.ModelAdmin):
         'user__username',
         'kargo_takip_no',
         'kullanilan_kupon',
-        'iyzico_transaction_id'  # <--- EKLENDİ (İşlem no ile arama)
+        'iyzico_transaction_id'
     )
 
     inlines = [SiparisUrunuInline]
 
-    # İyzico ID'si elle değiştirilmesin diye readonly yaptık.
+    # İyzico ID'si ve buton elle değiştirilmesin
     readonly_fields = ('tarih', 'toplam_tutar', 'kullanilan_kupon', 'iyzico_transaction_id')
 
     list_editable = ('durum',)
+
+    # --- ÖZEL BUTON VE AKSİYONLAR ---
+
+    def iyzico_kontrol_butonu(self, obj):
+        """
+        Eğer ödeme tamamlanmadıysa, admin panelinde 'Sorgula' butonu gösterir.
+        """
+        if not obj.odeme_tamamlandi:
+            return format_html(
+                '<a class="button" style="background-color: #ba2121; color: white; padding: 3px 10px; border-radius: 5px;" href="{}">İyzico Sorgula</a>',
+                reverse('admin:siparis_sorgula', args=[obj.pk])
+            )
+        return format_html('<span style="color: green;">✔ Onaylı</span>')
+
+    iyzico_kontrol_butonu.short_description = "Ödeme Kontrol"
+    iyzico_kontrol_butonu.allow_tags = True
+
+    def get_urls(self):
+        """
+        Özel butonun çalışması için URL tanımlaması.
+        """
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                '<int:siparis_id>/sorgula/',
+                self.admin_site.admin_view(self.admin_siparis_sorgula),
+                name='siparis_sorgula',
+            ),
+        ]
+        return custom_urls + urls
+
+    def admin_siparis_sorgula(self, request, siparis_id):
+        """
+        Butona basıldığında çalışacak mantık.
+        İyzico servisine gidip durumu sorar ve gerekirse siparişi kurtarır.
+        """
+        siparis = get_object_or_404(Siparis, id=siparis_id)
+
+        # 1. Servis Çağrısı (Services.py'ye eklediğin yeni metodu kullanır)
+        sonuc = IyzicoService.siparis_durumu_sorgula(siparis.id)
+
+        if sonuc.get('status') == 'success' and sonuc.get('paymentStatus') == 'SUCCESS':
+            islem_id = sonuc.get('paymentId', '')
+
+            try:
+                with transaction.atomic():
+                    # Siparişi kilitle
+                    s_locked = Siparis.objects.select_for_update().get(id=siparis.id)
+
+                    if s_locked.odeme_tamamlandi:
+                        self.message_user(request, "Bu sipariş zaten onaylanmış.", messages.WARNING)
+                        return redirect('admin:odeme_siparis_changelist')
+
+                    # --- STOK KONTROLÜ ---
+                    stok_yetersiz = False
+                    eksik_urunler = []
+
+                    for item in s_locked.items.all():
+                        kitap = Kitap.objects.select_for_update().get(id=item.kitap.id)
+                        if kitap.stok < item.adet:
+                            stok_yetersiz = True
+                            eksik_urunler.append(kitap.baslik)
+
+                    if stok_yetersiz:
+                        s_locked.odeme_tamamlandi = True
+                        s_locked.iyzico_transaction_id = islem_id
+                        s_locked.durum = 'stok_hatasi'
+                        s_locked.save()
+                        self.message_user(request, f"Ödeme bulundu ANCAK STOK YOK! Sipariş 'Stok Hatası'na çekildi. Eksikler: {eksik_urunler}", messages.ERROR)
+                    else:
+                        # Stokları düş
+                        for item in s_locked.items.all():
+                            kitap = Kitap.objects.get(id=item.kitap.id)
+                            kitap.stok -= item.adet
+                            kitap.save()
+
+                        # Siparişi onayla
+                        s_locked.odeme_tamamlandi = True
+                        s_locked.iyzico_transaction_id = islem_id
+                        s_locked.durum = 'hazirlaniyor'
+                        s_locked.save()
+
+                        # Sepet Temizliği (Opsiyonel ama iyi olur)
+                        try:
+                            sepet = Sepet.objects.filter(user=s_locked.user).first()
+                            if sepet:
+                                if sepet.uygulanan_kupon:
+                                    IndirimKodu.objects.filter(id=sepet.uygulanan_kupon.id).update(
+                                        kullanim_sayisi=F('kullanim_sayisi') + 1
+                                    )
+                                sepet.uygulanan_kupon = None
+                                sepet.save()
+                                sepet.items.all().delete()
+                        except Exception:
+                            pass
+
+                        self.message_user(request, f"Sipariş #{siparis.id} İyzico üzerinden başarıyla DOĞRULANDI ve ONAYLANDI.", messages.SUCCESS)
+
+            except Exception as e:
+                self.message_user(request, f"İşlem sırasında veritabanı hatası oluştu: {e}", messages.ERROR)
+
+        else:
+            hata_mesaji = sonuc.get('errorMessage', 'Ödeme bulunamadı')
+            self.message_user(request, f"İyzico'da bu sipariş için başarılı bir ödeme GÖRÜNMÜYOR. İyzico Mesajı: {hata_mesaji}", messages.WARNING)
+
+        return redirect('admin:odeme_siparis_changelist')
 
 
 # --- DİĞER ---
