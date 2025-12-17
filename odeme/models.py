@@ -115,6 +115,7 @@ class Siparis(models.Model):
         ('kargoya_verildi', 'Kargoya Verildi'),
         ('tamamlandi', 'Tamamlandı'),
         ('iptal', 'İptal Edildi'),
+        ('stok_hatasi', 'Stok Hatası (Ödeme Alındı)'),
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Kullanıcı")

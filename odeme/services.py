@@ -48,7 +48,7 @@ class IyzicoService:
             'basketId': str(siparis.id),
             'paymentGroup': 'PRODUCT',
             'callbackUrl': callback_url,
-            # ... (Adres ve alıcı bilgileri aynen kalacak) ...
+            # ... (Adres ve alıcı bilgileri) ...
             'enabledInstallments': ['1', '2', '3', '6', '9'],
             'buyer': {
                 'id': str(user.id),
@@ -103,11 +103,15 @@ class IyzicoService:
         fark = siparis.toplam_tutar - hesaplanan_toplam
 
         if fark != 0 and len(iyzico_basket_items) > 0:
-            # Farkı son kaleme yansıt
-            son_kalem = iyzico_basket_items[-1]
-            yeni_fiyat = Decimal(son_kalem['price']) + fark
+            # GÜVENLİ YÖNTEM: Farkı sepetteki en pahalı kaleme yansıt.
+            # Neden? Çünkü pahalı kalemin fiyatı farkı (örn: -0.01) tolere edebilir, eksiye düşmez.
 
-            # Eğer fark yüzünden fiyat eksiye düşerse (çok nadir), mecburen 'Siparis Toplami' yöntemine dön
+            # Fiyatı en yüksek olan item'ı buluyoruz (string -> decimal dönüşümü ile karşılaştır)
+            en_pahali_item = max(iyzico_basket_items, key=lambda x: Decimal(x['price']))
+
+            yeni_fiyat = Decimal(en_pahali_item['price']) + fark
+
+            # Çok nadir durum koruması (eğer matematiksel olarak yine eksiye düşerse)
             if yeni_fiyat <= 0:
                 iyzico_basket_items = [{
                     'id': str(siparis.id),
@@ -117,8 +121,8 @@ class IyzicoService:
                     'price': str(siparis.toplam_tutar)
                 }]
             else:
-                son_kalem['price'] = str(yeni_fiyat)
-                # Not: Son kalemin fiyatını güncelledik, böylece toplamlar eşitlendi.
+                # En pahalı kalemin fiyatını güncelle
+                en_pahali_item['price'] = str(yeni_fiyat)
 
         request_iyzico['basketItems'] = iyzico_basket_items
         # ------------------------------------------------

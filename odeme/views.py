@@ -20,7 +20,7 @@ from .models import Kitap, Sepet, SepetUrunu, Siparis, SiparisUrunu, IndirimKodu
 from .forms import SiparisForm, IndirimKoduForm
 from kullanicilar.models import Profil
 
-# Servis (Yeni Eklediğimiz Dosya)
+# Servis
 from .services import IyzicoService
 
 logger = logging.getLogger(__name__)
@@ -256,7 +256,7 @@ def odeme_baslat(request, siparis_id):
     if siparis.odeme_tamamlandi:
         return redirect('kullanicilar:hesabim')
 
-    # --- YENİ EKLENECEK KISIM: SON DAKİKA STOK KONTROLÜ ---
+    # --- SON DAKİKA STOK KONTROLÜ ---
     for urun in siparis.items.all():
         if urun.kitap.stok < urun.adet:
             messages.error(request, f"Üzgünüz, '{urun.kitap.baslik}' adlı ürünün stoğu tükenmiş veya azalmış.")
@@ -302,43 +302,58 @@ def odeme_sonuc(request):
                     if siparis.odeme_tamamlandi:
                         return redirect(reverse('kullanicilar:hesabim') + '?durum=zaten_odenmis')
 
-                    # 1. Stok Kontrolü ve Düşümü (YARIŞ DURUMU ÖNLEMİ BURADA)
-                    # Önce stokları kontrol et, sorun varsa işlemi iptal et (rollback)
+                    # --- GÜVENLİ STOK KONTROLÜ VE DÜŞÜMÜ ---
+                    stok_yetersiz_durumu = False
+                    eksik_urunler = []
+
+                    # 1. Önce stokları kontrol et (Düşme yapma)
                     for urun in siparis.items.all():
-                        # Kitabı kilitliyoruz ki başka işlem araya girmesin
                         kitap = Kitap.objects.select_for_update().get(id=urun.kitap.id)
-
                         if kitap.stok < urun.adet:
-                            # KRİTİK: Ödeme alındı ama stok yok!
-                            # Bu noktada bir Exception fırlatarak transaction'ı geri alıyoruz.
-                            # Sipariş "tamamlandı" olarak işaretlenmeyecek.
-                            # Admin bu durumu loglardan görüp manuel iade yapabilir.
-                            logger.error(f"Sipariş ID: {siparis.id} için stok yetersiz! Kitap: {kitap.baslik}")
-                            raise Exception(f"Stok yetersiz: {kitap.baslik}")
+                            stok_yetersiz_durumu = True
+                            eksik_urunler.append(kitap.baslik)
 
-                        # Stok yeterliyse düş
-                        kitap.stok -= urun.adet
-                        kitap.save()
+                    # 2. Duruma Göre İşlem Yap
+                    if stok_yetersiz_durumu:
+                        # KRİTİK: Ödeme alındı ama stok yok!
+                        # Transaction'ı iptal ETME, siparişi kaydet ama 'Hatalı' olarak işaretle.
+                        siparis.odeme_tamamlandi = True
+                        siparis.iyzico_transaction_id = islem_id
+                        siparis.durum = 'stok_hatasi'  # Models.py'de bu seçeneği eklemelisiniz
+                        siparis.save()
 
-                    # 2. Siparişi Güncelle (Stok başarıyla düştüyse buraya gelir)
-                    siparis.odeme_tamamlandi = True
-                    siparis.iyzico_transaction_id = islem_id
-                    siparis.save()
+                        logger.critical(
+                            f"ACİL: Sipariş {siparis.id} ödemesi alındı ama stok yetersiz! Eksik: {eksik_urunler}")
 
-                    # 3. Sepeti Temizle
-                    try:
-                        sepet = Sepet.objects.get(user=siparis.user)
-                        if sepet.uygulanan_kupon:
-                            IndirimKodu.objects.filter(id=sepet.uygulanan_kupon.id).update(
-                                kullanim_sayisi=F('kullanim_sayisi') + 1)
-                        sepet.uygulanan_kupon = None
-                        sepet.save()
-                        sepet.items.all().delete()
-                    except Sepet.DoesNotExist:
-                        pass
+                        # Kullanıcıya özel yönlendirme
+                        return redirect(reverse('kullanicilar:hesabim') + '?durum=stok_hatasi_incelemede')
 
-                # --- Müşteriye ve Admine Bildirim (Transaction dışı) ---
-                # ... (Mail gönderme kodları aynen kalabilir) ...
+                    else:
+                        # Her şey yolunda, stokları düş
+                        for urun in siparis.items.all():
+                            kitap = Kitap.objects.get(id=urun.kitap.id)
+                            kitap.stok -= urun.adet
+                            kitap.save()
+
+                        # Siparişi Tamamla
+                        siparis.odeme_tamamlandi = True
+                        siparis.iyzico_transaction_id = islem_id
+                        siparis.durum = 'hazirlaniyor'
+                        siparis.save()
+
+                        # Sepeti Temizle
+                        try:
+                            sepet = Sepet.objects.get(user=siparis.user)
+                            if sepet.uygulanan_kupon:
+                                IndirimKodu.objects.filter(id=sepet.uygulanan_kupon.id).update(
+                                    kullanim_sayisi=F('kullanim_sayisi') + 1)
+                            sepet.uygulanan_kupon = None
+                            sepet.save()
+                            sepet.items.all().delete()
+                        except Sepet.DoesNotExist:
+                            pass
+
+                # --- Başarılı İşlem Sonrası Mail (Transaction dışı) ---
                 try:
                     subject = f"Yeni Sipariş Var! - #{siparis.id}"
                     message = f"""
@@ -358,10 +373,9 @@ def odeme_sonuc(request):
             except Siparis.DoesNotExist:
                 return HttpResponse("Sipariş bulunamadı.")
             except Exception as e:
-                # Stok hatası veya başka bir hata olduğunda buraya düşer
-                logger.error(f"Ödeme Sonrası İşlem Hatası: {e}")
-                # Kullanıcıya "İşleminiz inceleniyor" veya "Hata" mesajı dönebilirsin
-                return redirect(reverse('odeme:sepeti_goruntule') + '?odeme=stok_hatasi_veya_sistem')
+                # Beklenmeyen bir hata
+                logger.error(f"Ödeme Sonrası Kritik Sistem Hatası: {e}")
+                return redirect(reverse('odeme:sepeti_goruntule') + '?odeme=sistem_hatasi')
 
         else:
             hata_mesaji = response.get('errorMessage', 'Ödeme alınamadı.')
