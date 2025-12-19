@@ -4,6 +4,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 # --- İNDİRİM KODU SİSTEMİ ---
@@ -147,6 +149,66 @@ class Siparis(models.Model):
 
     def __str__(self):
         return f"Sipariş #{self.id} - {self.user.username}"
+
+    # --- MAIL VE DURUM GÜNCELLEME SİSTEMİ ---
+
+    def save(self, *args, **kwargs):
+        # Sipariş ilk kez oluşturulmuyorsa (güncelleme ise)
+        if self.pk:
+            try:
+                eski_siparis = Siparis.objects.get(pk=self.pk)
+
+                # Durum değişmiş mi kontrol et
+                if eski_siparis.durum != self.durum:
+
+                    if self.durum == 'kargoya_verildi':
+                        self.mail_kargo_gonder()
+
+                    elif self.durum == 'iptal':
+                        self.mail_iptal_gonder()
+
+            except Siparis.DoesNotExist:
+                pass
+
+        super().save(*args, **kwargs)
+
+    def mail_kargo_gonder(self):
+        subject = f'Siparişiniz Kargoya Verildi - Sipariş No: #{self.id}'
+        message = f"""
+        Sayın {self.ad} {self.soyad},
+
+        Siparişiniz hazırlanmış ve kargoya verilmiştir.
+
+        Kargo Takip Numaranız: {self.kargo_takip_no if self.kargo_takip_no else 'Takip numarası sisteme girildiğinde ayrıca bildirilecektir.'}
+
+        Bizi tercih ettiğiniz için teşekkür ederiz.
+        """
+        send_mail(
+            subject,
+            message,
+            settings.EMAIL_HOST_USER,
+            [self.email],
+            fail_silently=True
+        )
+
+    def mail_iptal_gonder(self):
+        subject = f'Sipariş İptali Hakkında - Sipariş No: #{self.id}'
+        message = f"""
+        Sayın {self.ad} {self.soyad},
+
+        Siparişinizi çok üzülerek iptal etmek zorunda kaldık.
+
+        Ödemeniz bankanıza bağlı olarak 3-7 iş günü içerisinde kartınıza iade edilecektir.
+
+        Detaylı bilgi için bizimle iletişime geçebilirsiniz.
+        """
+        send_mail(
+            subject,
+            message,
+            settings.EMAIL_HOST_USER,
+            [self.email],
+            fail_silently=True
+        )
 
 
 class SiparisUrunu(models.Model):
