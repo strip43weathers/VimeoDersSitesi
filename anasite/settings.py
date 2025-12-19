@@ -125,9 +125,6 @@ if not DEBUG:
 MEDIA_URL = '/media/'
 
 
-ESKI_UYE_GECIS_TARIHI = "2025-10-25"
-
-
 if 'RENDER' in os.environ:
     MEDIA_ROOT = os.path.join('/var/lib/data', 'media')
 else:

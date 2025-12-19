@@ -368,7 +368,8 @@ def odeme_sonuc(request):
                 except Exception as e:
                     logger.error(f"Mail gönderme hatası: {e}")
 
-                return redirect(reverse('kullanicilar:hesabim') + '?odeme=basarili')
+                # Sipariş ID'sini de URL parametresi olarak ekliyoruz
+                return redirect(reverse('kullanicilar:hesabim') + f'?odeme=basarili&siparis_no={siparis.id}')
 
             except Siparis.DoesNotExist:
                 return HttpResponse("Sipariş bulunamadı.")

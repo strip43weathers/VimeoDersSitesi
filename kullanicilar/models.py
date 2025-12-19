@@ -17,21 +17,8 @@ class Profil(models.Model):
         return self.user.username
 
     def erisim_izni_var_mi(self):
-        """Kullanıcının içeriklere erişim izni olup olmadığını kontrol eder."""
-        # 1. Özel erişim yetkisi var mı?
-        if self.ozel_erisim:
-            return True
 
-            # 2. Eski kullanıcı mı? Settings'den tarihi alıyoruz.
-            gecis_tarihi_str = getattr(settings, 'ESKI_UYE_GECIS_TARIHI', "2025-10-25")
-            # Basit string'i datetime objesine çevirme (veya direkt datetime verebilirsiniz settings'de)
-            gecis_tarihi = datetime.datetime.strptime(gecis_tarihi_str, "%Y-%m-%d")
-            gecis_tarihi = timezone.make_aware(gecis_tarihi)
-
-            if self.user.date_joined < gecis_tarihi:
-                return True
-
-        return False
+        return self.ozel_erisim
 
     class Meta:
         verbose_name = "Kullanıcı Profili"
