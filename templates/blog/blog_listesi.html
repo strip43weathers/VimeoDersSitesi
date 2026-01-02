@@ -40,10 +40,6 @@
         background-color: #0b5ed7;
         border-color: #0a58ca;
     }
-    .modal-body img {
-        max-width: 100%;
-        height: auto;
-    }
 </style>
 {% endblock %}
 
@@ -96,28 +92,14 @@
                             {{ yazi.ozet|safe }}
                         </div>
                         <div class="mt-auto">
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-{{ yazi.id }}">
+                            <a href="{% url 'blog:blog_detay' yazi.slug %}" class="btn btn-primary">
                                 Devamını Oku
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="modal fade" id="modal-{{ yazi.id }}" tabindex="-1" aria-labelledby="modalLabel-{{ yazi.id }}" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalLabel-{{ yazi.id }}">{{ yazi.baslik }}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            {{ yazi.icerik|safe }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% empty %}
+            {% empty %}
             <div class="col">
                 <p class="text-center">Henüz blog yazısı eklenmemiş.</p>
             </div>
