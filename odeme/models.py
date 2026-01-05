@@ -62,6 +62,35 @@ class Kitap(models.Model):
         return self.baslik
 
 
+class KitapGorsel(models.Model):
+    kitap = models.ForeignKey(Kitap, on_delete=models.CASCADE, related_name='ekstra_gorseller')
+    gorsel = models.ImageField(upload_to='kitap_detay_gorseller/', verbose_name="Ekstra Görsel")
+    sira = models.PositiveIntegerField(default=0, verbose_name="Sıralama")
+
+    class Meta:
+        ordering = ['sira']
+        verbose_name = "Kitap Görseli"
+        verbose_name_plural = "Kitap Görselleri (Galeri)"
+
+    def __str__(self):
+        return f"{self.kitap.baslik} - Görsel {self.id}"
+
+
+class KitapVideo(models.Model):
+    kitap = models.ForeignKey(Kitap, on_delete=models.CASCADE, related_name='videolar')
+    baslik = models.CharField(max_length=200, verbose_name="Video Başlığı", blank=True)
+    dosya = models.FileField(upload_to='kitap_videolar/', verbose_name="Video Dosyası")
+    sira = models.PositiveIntegerField(default=0, verbose_name="Sıralama")
+
+    class Meta:
+        ordering = ['sira']
+        verbose_name = "Kitap Videosu"
+        verbose_name_plural = "Kitap Videoları"
+
+    def __str__(self):
+        return f"{self.kitap.baslik} - Video {self.baslik}"
+
+
 # --- SEPET SİSTEMİ ---
 
 class Sepet(models.Model):

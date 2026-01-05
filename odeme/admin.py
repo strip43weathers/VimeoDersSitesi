@@ -8,7 +8,7 @@ from django.db import transaction
 from django.db.models import F
 
 # Modeller
-from .models import Kitap, Sepet, SepetUrunu, Siparis, SiparisUrunu, IndirimKodu
+from .models import Kitap, Sepet, SepetUrunu, Siparis, SiparisUrunu, IndirimKodu, KitapGorsel, KitapVideo
 # Servis (Sorgulama işlemi için gerekli)
 from .services import IyzicoService
 
@@ -206,5 +206,29 @@ class SiparisAdmin(admin.ModelAdmin):
         return redirect('admin:odeme_siparis_changelist')
 
 
-# --- DİĞER ---
-admin.site.register(Kitap)
+# --- KİTAP DETAYLARI İÇİN INLINE YAPILARI ---
+
+class KitapGorselInline(admin.TabularInline):
+    model = KitapGorsel
+    extra = 1  # Yeni ekleme için boş satır sayısı
+    verbose_name = "Ekstra Görsel"
+    verbose_name_plural = "Galeri Görselleri"
+
+
+class KitapVideoInline(admin.TabularInline):
+    model = KitapVideo
+    extra = 1
+    verbose_name = "Video"
+    verbose_name_plural = "Tanıtım Videoları"
+
+
+# --- KİTAP ADMIN (GÜNCELLENMİŞ) ---
+
+@admin.register(Kitap)
+class KitapAdmin(admin.ModelAdmin):
+    list_display = ('baslik', 'fiyat', 'stok', 'sira')
+    list_editable = ('fiyat', 'stok', 'sira')
+    search_fields = ('baslik',)
+
+    # İşte burası resim ve videoları kitap sayfasında yönetmenizi sağlar
+    inlines = [KitapGorselInline, KitapVideoInline]
