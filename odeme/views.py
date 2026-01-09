@@ -177,7 +177,7 @@ def sepet_adet_guncelle(request, urun_id, islem):
 
 # --- ÖDEME VE SİPARİŞ ---
 
-@login_required
+# @login_required
 def odeme_yap(request):
     sepet = _get_sepet(request)
     if not sepet.items.exists():
@@ -201,7 +201,15 @@ def odeme_yap(request):
         form = SiparisForm(request.POST)
         if form.is_valid():
             siparis = form.save(commit=False)
-            siparis.user = request.user
+
+            # --- GÜNCELLEME: Kullanıcı Atama Mantığı ---
+            if request.user.is_authenticated:
+                siparis.user = request.user
+            else:
+                siparis.user = None
+                siparis.session_key = request.session.session_key
+            # -------------------------------------------
+
             siparis.toplam_tutar = odenecek_tutar
             siparis.odeme_tamamlandi = False
 
@@ -225,16 +233,21 @@ def odeme_yap(request):
             return redirect('odeme:odeme_baslat', siparis_id=siparis.id)
 
     else:
-        initial_data = {
-            'ad': request.user.first_name,
-            'soyad': request.user.last_name,
-            'email': request.user.email
-        }
-        try:
-            if hasattr(request.user, 'profil') and request.user.profil.telefon:
-                initial_data['telefon'] = request.user.profil.telefon
-        except:
-            pass
+        # --- GÜNCELLEME: Formu doldururken hata almamak için kontrol ---
+        initial_data = {}
+        if request.user.is_authenticated:
+            initial_data = {
+                'ad': request.user.first_name,
+                'soyad': request.user.last_name,
+                'email': request.user.email
+            }
+            try:
+                if hasattr(request.user, 'profil') and request.user.profil.telefon:
+                    initial_data['telefon'] = request.user.profil.telefon
+            except:
+                pass
+        # -------------------------------------------------------------
+
         form = SiparisForm(initial=initial_data)
 
     context = {
@@ -246,15 +259,26 @@ def odeme_yap(request):
     return render(request, 'odeme/odeme_sayfasi.html', context)
 
 
-@login_required
+# @login_required
 def odeme_baslat(request, siparis_id):
     """
     Siparişi alır, IyzicoService kullanarak formu hazırlar ve render eder.
     """
-    siparis = get_object_or_404(Siparis, id=siparis_id, user=request.user)
+    # --- GÜNCELLEME: Güvenlik Kontrolü ---
+    # Kullanıcı giriş yaptıysa user ile, yapmadıysa session_key ile eşleştirme yapıyoruz.
+    if request.user.is_authenticated:
+        siparis = get_object_or_404(Siparis, id=siparis_id, user=request.user)
+    else:
+        # Misafir kullanıcı kendi session'ındaki siparişi görebilsin
+        siparis = get_object_or_404(Siparis, id=siparis_id, session_key=request.session.session_key)
+    # -------------------------------------
 
     if siparis.odeme_tamamlandi:
-        return redirect('kullanicilar:hesabim')
+        # Eğer misafir ise anasayfaya atabiliriz veya hata mesajı
+        if request.user.is_authenticated:
+            return redirect('kullanicilar:hesabim')
+        else:
+            return redirect('anasayfa')
 
     # --- SON DAKİKA STOK KONTROLÜ ---
     for urun in siparis.items.all():
@@ -316,16 +340,14 @@ def odeme_sonuc(request):
                     # 2. Duruma Göre İşlem Yap
                     if stok_yetersiz_durumu:
                         # KRİTİK: Ödeme alındı ama stok yok!
-                        # Transaction'ı iptal ETME, siparişi kaydet ama 'Hatalı' olarak işaretle.
                         siparis.odeme_tamamlandi = True
                         siparis.iyzico_transaction_id = islem_id
-                        siparis.durum = 'stok_hatasi'  # Models.py'de bu seçeneği eklemelisiniz
+                        siparis.durum = 'stok_hatasi'
                         siparis.save()
 
                         logger.critical(
                             f"ACİL: Sipariş {siparis.id} ödemesi alındı ama stok yetersiz! Eksik: {eksik_urunler}")
 
-                        # Kullanıcıya özel yönlendirme
                         return redirect(reverse('kullanicilar:hesabim') + '?durum=stok_hatasi_incelemede')
 
                     else:
@@ -341,19 +363,26 @@ def odeme_sonuc(request):
                         siparis.durum = 'hazirlaniyor'
                         siparis.save()
 
-                        # Sepeti Temizle
+                        # --- SEPET TEMİZLİĞİ ---
                         try:
-                            sepet = Sepet.objects.get(user=siparis.user)
-                            if sepet.uygulanan_kupon:
-                                IndirimKodu.objects.filter(id=sepet.uygulanan_kupon.id).update(
-                                    kullanim_sayisi=F('kullanim_sayisi') + 1)
-                            sepet.uygulanan_kupon = None
-                            sepet.save()
-                            sepet.items.all().delete()
-                        except Sepet.DoesNotExist:
+                            sepet = None
+                            if siparis.user:
+                                sepet = Sepet.objects.filter(user=siparis.user).first()
+                            else:
+                                sepet = Sepet.objects.filter(session_key=siparis.session_key).first()
+
+                            if sepet:
+                                if sepet.uygulanan_kupon:
+                                    IndirimKodu.objects.filter(id=sepet.uygulanan_kupon.id).update(
+                                        kullanim_sayisi=F('kullanim_sayisi') + 1)
+                                sepet.uygulanan_kupon = None
+                                sepet.save()
+                                sepet.items.all().delete()
+                        except Exception as e:
+                            logger.error(f"Sepet temizleme hatası: {e}")
                             pass
 
-                # --- Başarılı İşlem Sonrası Mail (Transaction dışı) ---
+                # --- Başarılı İşlem Sonrası Mail ---
                 try:
                     subject = f"Yeni Sipariş Var! - #{siparis.id}"
                     message = f"""
@@ -368,25 +397,23 @@ def odeme_sonuc(request):
                 except Exception as e:
                     logger.error(f"Mail gönderme hatası: {e}")
 
-                # Sipariş ID'sini de URL parametresi olarak ekliyoruz
-                return redirect(reverse('kullanicilar:hesabim') + f'?odeme=basarili&siparis_no={siparis.id}')
+                # --- GÜNCELLEME: Yönlendirme Bloğu (ARTIK DOĞRU YERDE) ---
+                # Kullanıcı üye ise hesabım sayfasına, değilse teşekkür sayfasına
+                if siparis.user:
+                    return redirect(reverse('kullanicilar:hesabim') + f'?odeme=basarili&siparis_no={siparis.id}')
+                else:
+                    return render(request, 'odeme/siparis_basarili.html', {'siparis': siparis})
+                # ----------------------------------------
 
             except Siparis.DoesNotExist:
                 return HttpResponse("Sipariş bulunamadı.")
             except Exception as e:
-                # Beklenmeyen bir hata
                 logger.error(f"Ödeme Sonrası Kritik Sistem Hatası: {e}")
                 return redirect(reverse('odeme:sepeti_goruntule') + '?odeme=sistem_hatasi')
 
-
         else:
-
             hata_mesaji = response.get('errorMessage', 'Ödeme işlemi başarısız oldu.')
-
-            # Hata mesajını ekrana basılacak mesajlar listesine ekle
-
             messages.error(request, f"Ödeme Başarısız: {hata_mesaji}")
-
             return redirect('odeme:sepeti_goruntule')
 
     return redirect('anasayfa')

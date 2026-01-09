@@ -39,6 +39,18 @@ class IyzicoService:
         """
         options = IyzicoService.get_options()
 
+        # --- GÜNCELLEME: Misafir Kullanıcı Kontrolü ---
+        if user.is_authenticated:
+            buyer_id = str(user.id)
+            registration_date = user.date_joined.strftime('%Y-%m-%d %H:%M:%S')
+            last_login_date = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            # Misafir için email veya sipariş ID'sini kullanabiliriz
+            buyer_id = f"guest_{siparis.id}"
+            registration_date = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
+            last_login_date = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
+        # ---------------------------------------------
+
         request_iyzico = {
             'locale': 'tr',
             'conversationId': str(siparis.id),
@@ -50,14 +62,14 @@ class IyzicoService:
             'callbackUrl': callback_url,
             'enabledInstallments': ['1', '2', '3', '6', '9'],
             'buyer': {
-                'id': str(user.id),
+                'id': buyer_id,
                 'name': siparis.ad,
                 'surname': siparis.soyad,
                 'gsmNumber': siparis.telefon,
                 'email': siparis.email,
                 'identityNumber': siparis.tc_kimlik,
-                'lastLoginDate': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'registrationDate': user.date_joined.strftime('%Y-%m-%d %H:%M:%S'),
+                'lastLoginDate': last_login_date,
+                'registrationDate': registration_date,
                 'registrationAddress': siparis.adres,
                 'ip': ip,
                 'city': siparis.sehir,

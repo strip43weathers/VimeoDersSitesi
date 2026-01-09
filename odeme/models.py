@@ -149,7 +149,7 @@ class Siparis(models.Model):
         ('stok_hatasi', 'Stok Hatası (Ödeme Alındı)'),
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Kullanıcı")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Kullanıcı", null=True, blank=True)
     ad = models.CharField(max_length=100, verbose_name="Ad")
     soyad = models.CharField(max_length=100, verbose_name="Soyad")
     email = models.EmailField(verbose_name="E-posta")
@@ -159,6 +159,7 @@ class Siparis(models.Model):
     posta_kodu = models.CharField(max_length=10, verbose_name="Posta Kodu")
     ulke = models.CharField(max_length=50, verbose_name="Ülke")
     adres = models.TextField(verbose_name="Teslimat Adresi")
+    session_key = models.CharField(max_length=40, null=True, blank=True, verbose_name="Oturum Anahtarı")
 
     toplam_tutar = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Toplam Tutar")
     tarih = models.DateTimeField(auto_now_add=True, verbose_name="Sipariş Tarihi")
@@ -177,7 +178,8 @@ class Siparis(models.Model):
         verbose_name_plural = "Siparişler"
 
     def __str__(self):
-        return f"Sipariş #{self.id} - {self.user.username}"
+        kullanici_bilgisi = self.user.username if self.user else f"Misafir ({self.email})"
+        return f"Sipariş #{self.id} - {kullanici_bilgisi}"
 
     # --- MAIL VE DURUM GÜNCELLEME SİSTEMİ ---
 
