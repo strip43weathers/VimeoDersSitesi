@@ -398,11 +398,8 @@ def odeme_sonuc(request):
                     logger.error(f"Mail gönderme hatası: {e}")
 
                 # --- GÜNCELLEME: Yönlendirme Bloğu (ARTIK DOĞRU YERDE) ---
-                # Kullanıcı üye ise hesabım sayfasına, değilse teşekkür sayfasına
-                if siparis.user:
-                    return redirect(reverse('kullanicilar:hesabim') + f'?odeme=basarili&siparis_no={siparis.id}')
-                else:
-                    return render(request, 'odeme/siparis_basarili.html', {'siparis': siparis})
+                # Kullanıcı giriş yapmış olsun veya olmasın, herkesi teşekkür sayfasına gönderin
+                return render(request, 'odeme/siparis_basarili.html', {'siparis': siparis})
                 # ----------------------------------------
 
             except Siparis.DoesNotExist:

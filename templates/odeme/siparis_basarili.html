@@ -24,5 +24,20 @@
             </div>
         </div>
     </div>
+    <script>
+        // Sayısal değeri JS formatına uygun hale getirmek için string dönüşümü yapıyoruz
+        var siparisTutar = "{{ siparis.toplam_tutar|stringformat:'s' }}";
+        // Virgül varsa noktaya çevir (Türkçe ondalık formatı önlemi)
+        siparisTutar = siparisTutar.replace(',', '.');
+
+        fbq('track', 'Purchase', {
+            value: parseFloat(siparisTutar),
+            currency: 'TRY',
+            content_name: 'Sipariş #' + '{{ siparis.id }}',
+            content_ids: ['{{ siparis.id }}'],
+            content_type: 'product',
+            num_items: {{ siparis.items.count|default:1 }} 
+        });
+</script>
 </div>
 {% endblock %}
