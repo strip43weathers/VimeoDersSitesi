@@ -1,6 +1,7 @@
 # dersler/views.py
 
 from django.shortcuts import render, get_object_or_404, redirect
+from sayfalar.models import AnaSayfaAyar
 from .models import Kurs, Ders
 from blog.models import BlogYazisi
 from sayfalar.models import RehberVideo
@@ -23,9 +24,11 @@ def anasayfa_view(request):
         form = IletisimForm()
 
     recent_posts = BlogYazisi.objects.order_by('-olusturulma_tarihi')[:3]
+    fiyat_ayari = AnaSayfaAyar.objects.first()
     rehber_video = RehberVideo.objects.filter(sayfa='anasayfa', aktif=True).first()
 
     context = {
+        'fiyat_ayari': fiyat_ayari,
         'recent_posts': recent_posts,
         'rehber_video': rehber_video,
         'form': form,  # Formu template'e gönderiyoruz

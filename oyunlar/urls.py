@@ -6,4 +6,5 @@ urlpatterns = [
 
     path('', views.oyun_listesi, name='oyun_listesi'),
     path('uyelere-ozel/', views.ozel_oyun_listesi, name='ozel_oyun_listesi'),
+    path('duolingo/', views.duolingo_oyun_view, name='duolingo_oyun'),
 ]

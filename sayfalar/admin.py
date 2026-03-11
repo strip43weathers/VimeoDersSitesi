@@ -1,6 +1,6 @@
 # dosya: sayfalar/admin.py
 from django.contrib import admin
-from .models import Sayfa, RehberVideo, IletisimTalebi
+from .models import Sayfa, RehberVideo, IletisimTalebi, AnaSayfaAyar
 
 @admin.register(Sayfa)
 class SayfaAdmin(admin.ModelAdmin):
@@ -22,3 +22,8 @@ class IletisimTalebiAdmin(admin.ModelAdmin):
     list_filter = ('olusturulma_tarihi',)
     search_fields = ('ad_soyad', 'telefon', 'email')
     readonly_fields = ('olusturulma_tarihi',) # Tarih değiştirilemesin
+
+
+@admin.register(AnaSayfaAyar)
+class AnaSayfaAyarAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'baslangic_fiyat', 'orta_fiyat', 'premium_fiyat', 'konusma_fiyat')

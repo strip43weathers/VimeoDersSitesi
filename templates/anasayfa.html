@@ -375,7 +375,7 @@
                 <div class="card-header bg-white border-0 py-4 text-center">
                     <h4 class="fw-bold text-muted">Başlangıç Paketi</h4>
                     <h6 class="text-secondary">A1 Seviyesi</h6>
-                    <h2 class="display-6 fw-bold mt-3 text-dark">10.000 TL</h2>
+                    <h2 class="display-6 fw-bold mt-3 text-dark">{{ fiyat_ayari.baslangic_fiyat|default:"10.000 TL" }}</h2>
                 </div>
                 <div class="card-body">
                     <ul class="list-unstyled mb-4 small text-secondary">
@@ -405,7 +405,7 @@
                 <div class="card-header bg-white border-0 py-5 text-center">
                     <h4 class="fw-bold text-primary">Orta Paket</h4>
                     <h6 class="text-secondary">A1 + A2 Seviyesi</h6>
-                    <h2 class="display-6 fw-bold mt-3 text-dark">20.000 TL</h2>
+                    <h2 class="display-6 fw-bold mt-3 text-dark">{{ fiyat_ayari.orta_fiyat|default:"20.000 TL" }}</h2>
                 </div>
                 <div class="card-body bg-light bg-opacity-25">
                     <ul class="list-unstyled mb-4 small">
@@ -435,7 +435,7 @@
                 <div class="card-header bg-white border-0 py-5 text-center">
                     <h4 class="fw-bold text-dark">Premium A1 + A2 + B1 ve Dahası</h4>
                     <h6 class="text-secondary">Sertifika Garantili</h6>
-                    <h2 class="display-6 fw-bold mt-3 text-dark">24.000 TL</h2>
+                    <h2 class="display-6 fw-bold mt-3 text-dark">{{ fiyat_ayari.premium_fiyat|default:"24.000 TL" }}</h2>
                 </div>
                 <div class="card-body bg-warning bg-opacity-10">
                     <ul class="list-unstyled mb-4 small">
@@ -459,7 +459,7 @@
                 <div class="card-header bg-white border-0 py-4 text-center">
                     <h4 class="fw-bold text-dark">Konuşma Paketi</h4>
                     <h6 class="text-secondary">Uzman Eğitmenlerle Romence Pratik</h6>
-                    <h2 class="display-6 fw-bold mt-3 text-dark">10.000 TL</h2>
+                    <h2 class="display-6 fw-bold mt-3 text-dark">{{ fiyat_ayari.konusma_fiyat|default:"10.000 TL" }}</h2>
                 </div>
                 <div class="card-body">
                     <ul class="list-unstyled mb-4 small text-secondary">

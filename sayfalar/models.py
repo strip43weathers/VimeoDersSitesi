@@ -61,3 +61,17 @@ class IletisimTalebi(models.Model):
 
     def __str__(self):
         return f"{self.ad_soyad} - {self.telefon}"
+
+
+class AnaSayfaAyar(models.Model):
+    baslangic_fiyat = models.CharField(max_length=50, default="10.000 TL", verbose_name="Başlangıç Paketi Fiyatı")
+    orta_fiyat = models.CharField(max_length=50, default="20.000 TL", verbose_name="Orta Paket Fiyatı")
+    premium_fiyat = models.CharField(max_length=50, default="24.000 TL", verbose_name="Premium Paket Fiyatı")
+    konusma_fiyat = models.CharField(max_length=50, default="10.000 TL", verbose_name="Konuşma Paketi Fiyatı")
+
+    class Meta:
+        verbose_name = "Ana Sayfa Fiyat Ayarı"
+        verbose_name_plural = "Ana Sayfa Fiyat Ayarları"
+
+    def __str__(self):
+        return "Ana Sayfa Paket Fiyatları"
