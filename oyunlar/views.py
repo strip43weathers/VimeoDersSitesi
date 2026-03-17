@@ -50,5 +50,10 @@ def ozel_oyun_listesi(request):
     }
     return render(request, 'oyunlar/ozel_oyun_listesi.html', context)
 
+
 def duolingo_oyun_view(request):
     return render(request, 'oyunlar/duolingo_oyun.html')
+
+
+def dilbilgisi_oyun_view(request):
+    return render(request, 'oyunlar/dilbilgisi_oyun.html')
