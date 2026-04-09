@@ -26,4 +26,4 @@ class IletisimTalebiAdmin(admin.ModelAdmin):
 
 @admin.register(AnaSayfaAyar)
 class AnaSayfaAyarAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'baslangic_fiyat', 'orta_fiyat', 'premium_fiyat', 'konusma_fiyat')
+    list_display = ('__str__', 'premium_fiyat', 'konusma_fiyat')

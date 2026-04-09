@@ -64,8 +64,6 @@ class IletisimTalebi(models.Model):
 
 
 class AnaSayfaAyar(models.Model):
-    baslangic_fiyat = models.CharField(max_length=50, default="10.000 TL", verbose_name="Başlangıç Paketi Fiyatı")
-    orta_fiyat = models.CharField(max_length=50, default="20.000 TL", verbose_name="Orta Paket Fiyatı")
     premium_fiyat = models.CharField(max_length=50, default="24.000 TL", verbose_name="Premium Paket Fiyatı")
     konusma_fiyat = models.CharField(max_length=50, default="10.000 TL", verbose_name="Konuşma Paketi Fiyatı")
 
