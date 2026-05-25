@@ -166,11 +166,13 @@
                     <li class="nav-item">
                         <a href="{% url 'oyunlar:dilbilgisi_oyun' %}" class="nav-link">Gramer</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link fw-bold" href="{% url 'odeme:kitap_listesi' %}">
-                            <i class="bi bi-book-half text-info me-1"></i>Kitaplar
-                        </a>
-                    </li>
+                    {# GEÇİCİ OLARAK KAPATILDI #}
+                    {# <li class="nav-item"> #}
+                       {# <a class="nav-link fw-bold" href="{% url 'odeme:kitap_listesi' %}"> #}
+                          {#  <i class="bi bi-book-half text-info me-1"></i>Kitaplar #}
+                      {#  </a> #}
+                    {# </li> #}
+                    
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'blog:blog_listesi' %}">Blog</a> {# YENİ EKLENEN SATIR #}
                     </li>
@@ -179,11 +181,12 @@
                         <form action="{% url 'logout' %}" method="post">{% csrf_token %}<button type="submit" class="btn btn-outline-secondary btn-sm">Çıkış Yap</button></form>
                     </li>
                 {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link fw-bold" href="{% url 'odeme:kitap_listesi' %}">
-                            <i class="bi bi-book-half text-info me-1"></i>Kitaplar
-                        </a>
-                    </li>
+                    {# GEÇİCİ OLARAK KAPATILDI #}
+                    {# <li class="nav-item"> #}
+                      {#  <a class="nav-link fw-bold" href="{% url 'odeme:kitap_listesi' %}"> #}
+                          {#  <i class="bi bi-book-half text-info me-1"></i>Kitaplar #}
+                       {# </a> #}
+                    {# </li> #}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'dersler:kurs_listesi' %}">Kurslar</a>
                     </li>
