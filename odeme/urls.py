@@ -23,7 +23,7 @@ urlpatterns = [
 
     # --- KİTAP GÖRÜNTÜLEME ---
     path('kitap/<int:kitap_id>/', views.kitap_detay_view, name='kitap_detay'),
-    path('kitaplar/', views.kitap_listesi, name='kitap_listesi'),
+    #l path('kitaplar/', views.kitap_listesi, name='kitap_listesi'),
 
     # --- SÖZLEŞMELER ---
     path('satis-sozlesmesi/', views.satis_sozlesmesi, name='satis_sozlesmesi'),
