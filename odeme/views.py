@@ -261,46 +261,51 @@ def odeme_yap(request):
 
 # @login_required
 def odeme_baslat(request, siparis_id):
-    """
-    Siparişi alır, IyzicoService kullanarak formu hazırlar ve render eder.
-    """
+    messages.error(request,
+                   "Sistemimizde ödeme altyapısı geçici/kalıcı olarak durdurulmuştur. Yeni sipariş alınmamaktadır.")
+    return redirect('odeme:sepeti_goruntule')
+
+
+
+    # Siparişi alır, IyzicoService kullanarak formu hazırlar ve render eder.
+
     # --- GÜNCELLEME: Güvenlik Kontrolü ---
     # Kullanıcı giriş yaptıysa user ile, yapmadıysa session_key ile eşleştirme yapıyoruz.
-    if request.user.is_authenticated:
-        siparis = get_object_or_404(Siparis, id=siparis_id, user=request.user)
-    else:
-        # Misafir kullanıcı kendi session'ındaki siparişi görebilsin
-        siparis = get_object_or_404(Siparis, id=siparis_id, session_key=request.session.session_key)
+    # if request.user.is_authenticated:
+      #  siparis = get_object_or_404(Siparis, id=siparis_id, user=request.user)
+#    else:
+ #       # Misafir kullanıcı kendi session'ındaki siparişi görebilsin
+    #    siparis = get_object_or_404(Siparis, id=siparis_id, session_key=request.session.session_key)
     # -------------------------------------
 
-    if siparis.odeme_tamamlandi:
+#    if siparis.odeme_tamamlandi:
         # Eğer misafir ise anasayfaya atabiliriz veya hata mesajı
-        if request.user.is_authenticated:
-            return redirect('kullanicilar:hesabim')
-        else:
-            return redirect('anasayfa')
+#        if request.user.is_authenticated:
+ #           return redirect('kullanicilar:hesabim')
+  #      else:
+   #         return redirect('anasayfa')
 
     # --- SON DAKİKA STOK KONTROLÜ ---
-    for urun in siparis.items.all():
-        if urun.kitap.stok < urun.adet:
-            messages.error(request, f"Üzgünüz, '{urun.kitap.baslik}' adlı ürünün stoğu tükenmiş veya azalmış.")
-            return redirect('odeme:sepeti_goruntule')
+#    for urun in siparis.items.all():
+#        if urun.kitap.stok < urun.adet:
+#           messages.error(request, f"Üzgünüz, '{urun.kitap.baslik}' adlı ürünün stoğu tükenmiş veya azalmış.")
+ #           return redirect('odeme:sepeti_goruntule')
     # -----------------------------------------------------
 
     # Gerekli bilgileri hazırla
-    ip = get_client_ip(request)
-    callback_url = request.build_absolute_uri(reverse('odeme:odeme_sonuc'))
+#    ip = get_client_ip(request)
+#   callback_url = request.build_absolute_uri(reverse('odeme:odeme_sonuc'))
 
     # Servisi Çağır
-    result = IyzicoService.create_checkout_form(siparis, request.user, ip, callback_url)
+#   result = IyzicoService.create_checkout_form(siparis, request.user, ip, callback_url)
 
-    if result.get('status') == 'success':
-        form_content = result['checkoutFormContent']
-        return render(request, 'odeme/odeme_ekrani.html', {'iyzico_form': form_content})
-    else:
-        error_message = result.get('errorMessage', 'Bilinmeyen bir hata oluştu')
-        return HttpResponse(f"Ödeme başlatılamadı: {error_message} <br> <a href='/odeme/sepet/'>Sepete Dön</a>")
-
+#   if result.get('status') == 'success':
+#       form_content = result['checkoutFormContent']
+#       return render(request, 'odeme/odeme_ekrani.html', {'iyzico_form': form_content})
+#   else:
+#       error_message = result.get('errorMessage', 'Bilinmeyen bir hata oluştu')
+#       return HttpResponse(f"Ödeme başlatılamadı: {error_message} <br> <a href='/odeme/sepet/'>Sepete Dön</a>")
+#
 
 @csrf_exempt
 def odeme_sonuc(request):
